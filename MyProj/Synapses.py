@@ -51,5 +51,5 @@ class NonSpikingSynapse:
             self.g = self.g_max
         else:
             self.g = self.g_max * (Vm_pre - self.Vthr_pre)/ (self.Vsat_pre - self.Vthr_pre) #divise pour que g !> gmax                  
-        I_syn = self.g * (Vm_post - self.Veq) / 1000
+        I_syn = self.g * (-Vm_post + self.Veq)/1000 
         return I_syn

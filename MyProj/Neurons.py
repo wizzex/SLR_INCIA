@@ -109,7 +109,7 @@ class NonSpikingNeuron:
 
         """
         self.I_leak = self.g_leak * (self.V_m-self.V_rest)/1000
-        self.I_tot = (self.V_rest/(self.Rm*10**6))+ I_inj + I_set + I_go - self.I_leak
-        dV_m = dt * (-self.V_m + (self.I_tot * self.Rm) * 10**6)/ self.tau
+        self.I_tot = I_inj + I_set + I_go - self.I_leak
+        dV_m = dt * (-self.V_m+self.V_rest + (self.I_tot * self.Rm) * 10**6)/ self.tau
         self.V_m += dV_m
         return self.V_m

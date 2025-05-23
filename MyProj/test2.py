@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Paramètres génériques
 dt = 0.2  # ms
-T_total = 3000  # ms
+T_total = 2000  # ms
 times = np.arange(0, T_total, dt)
 
 # Neurones
@@ -14,16 +14,18 @@ pre_neuron = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)  # en MΩ
 post_neuron = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
 
 # Synapse
-syn = NonSpikingSynapse(Veq=-70, g_max=0.0019, Vthr_pre=-65.0, Vsat_pre=-20.0)
+syn = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-65.0, Vsat_pre=-20.0)
 
 Vms_pre = []
 Vms_post = []
 I_syns = []
 I_injs = []
 g = []
+I_totsVpost=[]
+I_leaks=[]
 for t in times:
     # Injecte un courant dans le neurone présynaptique entre 80 et 150 ms
-    I_inj_pre = 0.0002 if 1000 <= t < 2500 else 0.0
+    I_inj_pre = 0.00015 if 1000 <= t < 1500 else 0.0
 
     # Mise à jour du neurone présynaptique
     Vm_pre = pre_neuron.update(I_inj_pre, 0, 0, dt)
@@ -40,6 +42,8 @@ for t in times:
     I_syns.append(I_syn)
     I_injs.append(I_inj_pre)
     g.append(syn.g)
+    I_totsVpost.append(post_neuron.I_tot)
+    I_leaks.append(post_neuron.I_leak)
 fig, ax1 = plt.subplots()
 
 color = 'tab:blue'
@@ -55,9 +59,11 @@ ax1.legend(loc="upper left")
 ax2 = ax1.twinx()
 color = 'tab:red'
 ax2.set_ylabel('I_syn (mA)', color=color)
-#ax2.plot(times, I_syns, label="I_syn", linestyle='--', color=color)
-#ax2.plot(times, g, label="g", linestyle='-.', color='tab:green')
+#ax2.plot(times, I_syns, label="I_post syn", linestyle='--', color=color)
+#ax2.plot(times, g, label="I_tot", linestyle='-.', color='tab:green')
 #ax2.plot(times, I_injs, label="I_injs", linestyle='-.', color='tab:green')
+#ax2.plot(times, I_totsVpost, label="I_tots_post", linestyle='--', color='tab:blue')
+#ax2.plot(times, I_leaks, label="I_leaks", linestyle='--', color='tab:blue')
 ax2.tick_params(axis='y', labelcolor=color)
 ax2.legend(loc="upper right")
 
