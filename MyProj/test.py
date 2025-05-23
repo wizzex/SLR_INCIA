@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 Ia_FlxPn = NonSpikingSynapse(Veq=-10, g_max=567, Vthr_pre=-65, Vsat_pre=-20)
-FlxPn = NonSpikingNeuron(V_rest=-65,tau=5,Rm=1)
+FlxPn = NonSpikingNeuron(V_rest=-65 ,tau=5,Rm=1) #ra
 
 dt = 0.2  # ms
 """
