@@ -8,11 +8,10 @@ Ia = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
 Alpha = NonSpikingNeuron(V_rest=-70.0, tau=5.0, Rm=1.0)
 Pn = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
 
-Ia_Alpha = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-65.0, Vsat_pre=-20.0)
-Ia_Pn = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-65.0, Vsat_pre=-20.0)
-Pn_Alpha = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-65.0, Vsat_pre=-20.0)
+Ia_Alpha = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-50.0, Vsat_pre=-20.0)
+Ia_Pn = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-50.0, Vsat_pre=-20.0)
+Pn_Alpha = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-50.0, Vsat_pre=-20.0)
 
-# Paramètres génériques
 dt = 0.2  
 T_total = 30  
 times = np.arange(0, T_total, dt)
