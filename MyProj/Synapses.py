@@ -7,7 +7,7 @@ Created on Fri May 16 16:40:02 2025
 
 
 class NonSpikingSynapse:
-    def __init__(self, Veq: float, g_max: float, Vthr_pre: float, Vsat_pre: float, name):
+    def __init__(self, Veq: float, g_max: float, Vthr_pre: float, Vsat_pre:float):
         """
 
         Parameters
@@ -27,7 +27,6 @@ class NonSpikingSynapse:
         self.Vthr_pre =Vthr_pre
         self.Vsat_pre = Vsat_pre
         self.g = 0.0    # (uS)
-        self.name = name
 
     def update_g(self, Vm_pre: float):
         """

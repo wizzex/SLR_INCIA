@@ -6,15 +6,15 @@ import matplotlib.pyplot as plt
 
 # Paramètres génériques
 dt = 0.2  # ms
-T_total = 2000  # ms
+T_total = 20  # ms
 times = np.arange(0, T_total, dt)
 
 # Neurones
-pre_neuron = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)  # en MΩ
-post_neuron = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
+pre_neuron = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0, name="pre_neuron")  # en MΩ
+post_neuron = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0, name="post_neuron")
 
 # Synapse
-syn = NonSpikingSynapse(Veq=0, g_max=0.008, Vthr_pre=-65.0, Vsat_pre=-20.0)
+syn = NonSpikingSynapse(Veq=0, g_max=2, Vthr_pre=-65.0, Vsat_pre=-20.0, name="syn")
 
 Vms_pre = []
 Vms_post = []
@@ -25,14 +25,14 @@ I_totsVpost=[]
 I_leaks=[]
 for t in times:
     # Injecte un courant dans le neurone présynaptique entre 80 et 150 ms
-    I_inj_pre = 0.00015 if 1000 <= t < 1500 else 0.0
+    I_inj_pre = 15 if 10 <= t < 15 else 0.0
 
     # Mise à jour du neurone présynaptique
     Vm_pre = pre_neuron.update(I_inj_pre, 0, 0, dt)
 
     # Calcul du courant synaptique
-    I_syn = syn.update(Vm_pre, post_neuron.V_m)
-
+    gg = syn.update_g(Vm_pre)
+    I_syn = syn.update_Isyn(gg,post_neuron.Vm)
     # Mise à jour du neurone postsynaptique avec le courant synaptique
     Vm_post = post_neuron.update(I_syn, 0, 0, dt)
 

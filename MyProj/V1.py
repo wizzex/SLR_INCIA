@@ -44,7 +44,7 @@ FlxPn_FlxPnPre = NonSpikingSynapse(Veq=0, g_max=1,
                                 Vthr_pre=-65.0, Vsat_pre=-20.0,
                                 name="FlxPn_FlxPnPre")
 ExtPn_FlxPnPre = NonSpikingSynapse(Veq=-80, g_max=0,
-                                Vthr_pre=-65.0, Vsat_pre=-20.0,
+                                Vthr_pre=-55.0, Vsat_pre=-40.0,
                                 name="ExtPn_FlxPnPre")
 FlxPnPre_FlxAlpha = NonSpikingSynapse(Veq=0, g_max=4,
                                    Vthr_pre=-65.0, Vsat_pre=-20.0,
@@ -75,7 +75,7 @@ ExtPn_ExtPnPre = NonSpikingSynapse(Veq=0, g_max=1,
                                 Vthr_pre=-65.0, Vsat_pre=-20.0,
                                 name="ExtPn_ExtPnPre")
 FlxPn_ExtPnPre = NonSpikingSynapse(Veq=-80, g_max=0,
-                                Vthr_pre=-65.0, Vsat_pre=-20.0,
+                                Vthr_pre=-55.0, Vsat_pre=-40.0,
                                 name="FlxPn_ExtPnPre")
 ExtPnPre_ExtAlpha = NonSpikingSynapse(Veq=0, g_max=4,
                                    Vthr_pre=-65.0, Vsat_pre=-20.0,
@@ -110,6 +110,9 @@ Isyns_FlxPn_ExtPnPre = []
 Isyns_ExtPnPre_ExtAlpha = []
 gs_FlxPn_ExtPnPre = []
 
+dico = {}
+
+dico["blabla"] = Instance()
 
 """
 ==============================================================================
@@ -395,8 +398,8 @@ for t in times:
         dic_presyn_updated[neur] = []
     dic_syn_Isyn = {}
 
-    I_inj_FlxIa = 20 if 10 <= t < 15 else 0.0 # (nA)
-    I_inj_ExtIa = 20 if 10 <= t < 15 else 0.0 # (nA)
+    I_inj_FlxIa = 100 if 10 <= t < 15 else 0.0 # (nA)
+    I_inj_ExtIa = 100 if 10 <= t < 15 else 0.0 # (nA)
     for order in dic_order.keys():
         if order == 0:
             for elt in dic_order[order]:
@@ -480,7 +483,7 @@ ax1.tick_params(axis='y', labelcolor='tab:blue')
 ax1.grid(True)
 ax1.legend(loc="upper left", prop={'size':6})
 ax1.set_title("Potentiels membranaires")
-ax1.set_yticks(np.arange(-70, -50, 5))
+#ax1.set_yticks(np.arange(-70, -50, 5))
 
 ax2.set_xlabel('Temps (ms)')
 ax2.set_ylabel('Neuron syn current (nA)', color='tab:orange')
@@ -505,7 +508,7 @@ ax3.tick_params(axis='y', labelcolor='tab:blue')
 ax3.grid(True)
 ax3.legend(loc="upper left", prop={'size':6})
 ax3.set_title("Potentiels membranaires")
-ax3.set_yticks(np.arange(-70, -50, 5))
+#ax3.set_yticks(np.arange(-70, -50, 5))
 
 ax4.set_xlabel('Temps (ms)')
 ax4.set_ylabel('Neuron syn current (nA)', color='tab:orange')

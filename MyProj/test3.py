@@ -13,13 +13,13 @@ Units :
     Rm=  (MOhm)
 """
 
-Ia = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
-Alpha = NonSpikingNeuron(V_rest=-70.0, tau=5.0, Rm=1.0)
-Pn = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
+Ia = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0, name="Ia")
+Alpha = NonSpikingNeuron(V_rest=-70.0, tau=5.0, Rm=1.0,name="Alpha")
+Pn = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0,name="Pn")
 
-Ia_Alpha = NonSpikingSynapse(Veq=0, g_max=1.4, Vthr_pre=-65.0, Vsat_pre=-20.0)
-Ia_Pn = NonSpikingSynapse(Veq=0, g_max=1.8, Vthr_pre=-65.0, Vsat_pre=-20.0)
-Pn_Alpha = NonSpikingSynapse(Veq=0, g_max=1.6, Vthr_pre=-65.0, Vsat_pre=-20.0)
+Ia_Alpha = NonSpikingSynapse(Veq=0, g_max=1.4, Vthr_pre=-65.0, Vsat_pre=-20.0,name="Ia_Alpha")
+Ia_Pn = NonSpikingSynapse(Veq=0, g_max=1.8, Vthr_pre=-65.0, Vsat_pre=-20.0,name="Ia_Pn")
+Pn_Alpha = NonSpikingSynapse(Veq=0, g_max=1.6, Vthr_pre=-65.0, Vsat_pre=-20.0,name="Pn_Alpha")
 
 dt = 0.2  
 T_total = 30  
@@ -43,17 +43,17 @@ for t in times:
     #I_post_Ia_Pn = Ia_Alpha.update(Vm_Ia, Pn.V_m)
     
     # calcul des courants synaptiques (2nd order)
-    Ia_Alpha.update(Vm_Ia, Alpha.V_m)
-    Ia_Pn.update(Vm_Ia, Pn.V_m)
-    Isyn_Ia_Alpha = Ia_Alpha.I_syn
-    Isyn_Ia_Pn = Ia_Pn.I_syn
+    Ia_Alpha.update_g(Vm_Ia)
+    Ia_Pn.update_g(Vm_Ia)
+    Isyn_Ia_Alpha = Ia_Alpha.update_Isyn(Ia_Alpha.g,Alpha.Vm)
+    Isyn_Ia_Pn = Ia_Pn.update_Isyn(Ia_Pn.g,Pn.Vm)
     # Calcul des potentiels Mb 2nd ordre
     Vm_Alpha = Alpha.update(Isyn_Ia_Alpha,0,0,dt)
     Vm_Pn = Pn.update(Isyn_Ia_Pn,0,0,dt)
     
     # calcul des courants synaptiques (3rd order)
-    Pn_Alpha.update(Vm_Pn, Vm_Alpha)
-    Isyn_Pn_Alpha = Pn_Alpha.I_syn
+    Pn_Alpha.update_g(Vm_Pn)
+    Isyn_Pn_Alpha = Pn_Alpha.update_Isyn(Pn_Alpha.g,Alpha.Vm)
     Vm_Alpha = Alpha.update(Isyn_Pn_Alpha,0,0,dt)
 
     VmsIa.append(Vm_Ia)

@@ -7,7 +7,7 @@ Created on Fri May 16 16:40:02 2025
 
 
 class NonSpikingNeuron:
-    def __init__(self, V_rest: float, tau: float, Rm: float, name):
+    def __init__(self, V_rest: float, tau: float, Rm: float):
         """
 
         Parameters
@@ -30,7 +30,6 @@ class NonSpikingNeuron:
         self.g_leak = 1 / (Rm)
         self.I_tot = 0
         self.I_leak = 0
-        self.name = name
 
     def update(self, I_inj: float, I_set: float, I_go: float, dt: float):
         """
