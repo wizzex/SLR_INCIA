@@ -65,8 +65,6 @@ class HillMuscle:
 
     def stimulus_tension(self, V: float):
         """
-
-
             Parameters
             ----------
             V : float

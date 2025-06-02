@@ -26,7 +26,7 @@ I_tots = []
 
 for t in times:
     if 10 <= t < 15: #temps auquelle on injecte du courant ici de 10 ms à 15 ms
-        I_inj = 0.00015  # Changer ici la force de la stimulation, actuellement 150 nA
+        I_inj = 30  # Changer ici la force de la stimulation, actuellement 150 nA
     else:
         I_inj = 0.0
 
