@@ -13,13 +13,13 @@ Units :
     Rm=  (MOhm)
 """
 
-Ia = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0, name="Ia")
-Alpha = NonSpikingNeuron(V_rest=-70.0, tau=5.0, Rm=1.0,name="Alpha")
-Pn = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0,name="Pn")
+Ia = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
+Alpha = NonSpikingNeuron(V_rest=-70.0, tau=5.0, Rm=1.0)
+Pn = NonSpikingNeuron(V_rest=-65.0, tau=5.0, Rm=1.0)
 
-Ia_Alpha = NonSpikingSynapse(Veq=0, g_max=1.4, Vthr_pre=-65.0, Vsat_pre=-20.0,name="Ia_Alpha")
-Ia_Pn = NonSpikingSynapse(Veq=0, g_max=1.8, Vthr_pre=-65.0, Vsat_pre=-20.0,name="Ia_Pn")
-Pn_Alpha = NonSpikingSynapse(Veq=0, g_max=1.6, Vthr_pre=-65.0, Vsat_pre=-20.0,name="Pn_Alpha")
+Ia_Alpha = NonSpikingSynapse(Veq=0, g_max=1.4, Vthr_pre=-65.0, Vsat_pre=-20.0)
+Ia_Pn = NonSpikingSynapse(Veq=0, g_max=1.8, Vthr_pre=-65.0, Vsat_pre=-20.0)
+Pn_Alpha = NonSpikingSynapse(Veq=0, g_max=1.6, Vthr_pre=-65.0, Vsat_pre=-20.0)
 
 dt = 0.2  
 T_total = 30  
@@ -38,30 +38,27 @@ for t in times:
     I_inj = 20 if 10 <= t < 15 else 0.0 # (nA)
 
     # calcul des noueaux potentiels dûs aux courants de stimulation (1st order)
-    Vm_Ia = Ia.update(0, I_inj, 0, dt)
+    Ia.update(0, I_inj, 0, dt)
+    Alpha.update(Pn_Alpha.Isyn+Ia_Alpha.Isyn,0,0,dt)
+    Pn.update(Ia_Pn.Isyn,0,0,dt)
     #I_post_Ia_Alpha = Ia_Alpha.update(Vm_Ia, Alpha.V_m)
     #I_post_Ia_Pn = Ia_Alpha.update(Vm_Ia, Pn.V_m)
     
-    # calcul des courants synaptiques (2nd order)
-    Ia_Alpha.update_g(Vm_Ia)
-    Ia_Pn.update_g(Vm_Ia)
-    Isyn_Ia_Alpha = Ia_Alpha.update_Isyn(Ia_Alpha.g,Alpha.Vm)
-    Isyn_Ia_Pn = Ia_Pn.update_Isyn(Ia_Pn.g,Pn.Vm)
-    # Calcul des potentiels Mb 2nd ordre
-    Vm_Alpha = Alpha.update(Isyn_Ia_Alpha,0,0,dt)
-    Vm_Pn = Pn.update(Isyn_Ia_Pn,0,0,dt)
+    # calcul des courants synaptiques 
+    Ia_Alpha.update_g(Ia.Vm)
+    Ia_Alpha.update_Isyn(Ia_Alpha.g,Alpha.Vm)
+    Ia_Pn.update_g(Ia.Vm)
+    Ia_Pn.update_Isyn(Ia_Pn.g,Pn.Vm)
+    Pn_Alpha.update_g(Pn.Vm)
+    Pn_Alpha.update_Isyn(Pn_Alpha.g,Alpha.Vm)
     
-    # calcul des courants synaptiques (3rd order)
-    Pn_Alpha.update_g(Vm_Pn)
-    Isyn_Pn_Alpha = Pn_Alpha.update_Isyn(Pn_Alpha.g,Alpha.Vm)
-    Vm_Alpha = Alpha.update(Isyn_Pn_Alpha,0,0,dt)
 
-    VmsIa.append(Vm_Ia)
-    VmsPn.append(Vm_Pn)
-    VmsAlpha.append(Vm_Alpha)
-    Isyns_Ia_Alpha.append(Isyn_Ia_Alpha)
-    Isyns_Ia_Pn.append(Isyn_Ia_Pn)
-    Isyns_Pn_Alpha.append(Isyn_Pn_Alpha)
+    VmsIa.append(Ia.Vm)
+    VmsPn.append(Pn.Vm)
+    VmsAlpha.append(Alpha.Vm)
+    Isyns_Ia_Alpha.append(Ia_Alpha.Isyn)
+    Isyns_Ia_Pn.append(Ia_Pn.Isyn)
+    Isyns_Pn_Alpha.append(Pn_Alpha.Isyn)
 
 
 fig, axes = plt.subplots(nrows=2, ncols=1)
@@ -85,6 +82,6 @@ ax2.plot(times, Isyns_Pn_Alpha, label="Isyns_Pn_Alpha", color='tab:green')
 ax2.tick_params(axis='y', labelcolor='tab:orange')
 ax2.grid(True)
 ax2.legend(loc="upper left")
-ax2.set_title("Suivi temporel des courants synaptiques")
+ax2.set_title("Suivi temporel des courants synaptique")
 plt.tight_layout()
 plt.show()

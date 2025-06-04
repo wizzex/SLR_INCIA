@@ -27,6 +27,7 @@ class NonSpikingSynapse:
         self.Vthr_pre =Vthr_pre
         self.Vsat_pre = Vsat_pre
         self.g = 0.0    # (uS)
+        self.Isyn = 0
 
     def update_g(self, Vm_pre: float):
         """
@@ -65,6 +66,5 @@ class NonSpikingSynapse:
             Isyn : float
         1)Calculate synaptic current in function of conductance and Vm_post
         """
-        Isyn = g * (-Vm_post + self.Veq)
-        self.Isyn = Isyn
-        return self.Isyn
+        self.Isyn = g * (-Vm_post + self.Veq)
+       
