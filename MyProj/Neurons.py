@@ -22,10 +22,10 @@ class NonSpikingNeuron:
             conductance de leak en mS
 
         """
-        self.Vm = V_rest  #(mV)
+        self.Vm = V_rest  # (mV)
         self.V_rest = V_rest
         self.tau = tau
-        self.Rm = Rm #(Mohm)
+        self.Rm = Rm  # (Mohm)
         self.V_leak = V_rest
         self.g_leak = 1 / (Rm)
         self.I_tot = 0
@@ -50,11 +50,11 @@ class NonSpikingNeuron:
         1) Calculate Ileak, courant de fuite, permet au neurone de revenir à son potentiel de repos
         2) Bilan des courants du neurone
         3) Calcul de Vm à partir de l'équa dif des neurones sans spike, mise à l'echelle en mV
-        
+
 
         """
-        self.I_leak = self.g_leak * (self.Vm-self.V_rest)
+        self.I_leak = self.g_leak * (self.Vm - self.V_rest)
         self.I_tot = I_inj + I_set + I_go - self.I_leak
-        dVm = dt * (-self.Vm+self.V_rest + (self.I_tot * self.Rm))/ self.tau
-        self.Vm += dVm
+        dVm = (-self.Vm + self.V_rest + (self.I_tot * self.Rm)) / self.tau
+        self.Vm += dVm * dt
         return self.Vm
