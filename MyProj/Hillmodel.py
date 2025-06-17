@@ -136,5 +136,7 @@ class HillMuscle:
                 + self.A
             )
         ) * (dt)
+        if self.T < 0:
+            self.T = 0
         self.T *= self.length_tension()
         return self.T

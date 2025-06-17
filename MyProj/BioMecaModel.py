@@ -34,28 +34,54 @@ class BiomechModel:
         self.v = self.v + self.a * self.dt
         self.alpha = self.alpha + self.v * self.dt
         self.alpha_radian = self.alpha * np.pi / 180
+        """
         self.d2L_biceps = (
             (
-                (self.L_biceps - (self.L_biceps - self.r_poulie * self.alpha_radian))
+                (
+                    self.L_biceps
+                    - (self.L_biceps_init - self.r_poulie * self.alpha_radian)
+                )
                 / self.dt
             )
             - self.dL_biceps
         ) / self.dt
         self.d2L_triceps = (
             (
-                (self.L_triceps - (self.L_triceps + self.r_poulie * self.alpha_radian))
+                (
+                    (self.L_triceps_init + self.r_poulie * self.alpha_radian)
+                    - self.L_triceps
+                )
                 / self.dt
             )
             - self.dL_triceps
         ) / self.dt
         self.dL_biceps = (
-            self.L_biceps - (self.L_biceps - self.r_poulie * self.alpha_radian)
+            (self.L_biceps_init - self.r_poulie * self.alpha_radian) - self.L_biceps
         ) / self.dt
         self.dL_triceps = (
-            self.L_triceps - (self.L_triceps + self.r_poulie * self.alpha_radian)
+            (self.L_triceps_init + self.r_poulie * self.alpha_radian) - self.L_triceps
         ) / self.dt
         self.L_biceps = self.L_biceps_init - self.r_poulie * self.alpha_radian
         self.L_triceps = self.L_triceps_init + self.r_poulie * self.alpha_radian
+        """
+        # Calcul de la nouvelle position musculaire
+        L_biceps_new = self.L_biceps_init - self.r_poulie * self.alpha_radian
+        L_triceps_new = self.L_triceps_init + self.r_poulie * self.alpha_radian
+
+        # Calcul des vitesses (dérivées premières) par différence finie
+        dL_biceps_new = (L_biceps_new - self.L_biceps) / self.dt
+        dL_triceps_new = (L_triceps_new - self.L_triceps) / self.dt
+
+        # Calcul des accélérations (dérivées secondes)
+        self.d2L_biceps = (dL_biceps_new - self.dL_biceps) / self.dt
+        self.d2L_triceps = (dL_triceps_new - self.dL_triceps) / self.dt
+
+        # Mise à jour des variables pour la prochaine itération
+        self.L_biceps = L_biceps_new
+        self.L_triceps = L_triceps_new
+        self.dL_biceps = dL_biceps_new
+        self.dL_triceps = dL_triceps_new
+
         # if self.alpha > 130:
         #   self.alpha = 130
         #   self.v = 0

@@ -37,7 +37,7 @@ FlxPn = NonSpikingNeuron(V_rest=-65.0, tau=0.005, Rm=1.0)
 FlxIa_Alpha = NonSpikingSynapse(
     Veq=0, g_max=20, Vthr_pre=-65.0, Vsat_pre=-20.0
 )  # modif les synapses pour que les pps soient pris en compte
-FlxIa_Pn = NonSpikingSynapse(Veq=0, g_max=10, Vthr_pre=-65.0, Vsat_pre=-20.0)
+FlxIa_Pn = NonSpikingSynapse(Veq=0, g_max=7, Vthr_pre=-65.0, Vsat_pre=-20.0)
 FlxPn_Alpha = NonSpikingSynapse(Veq=0, g_max=5, Vthr_pre=-65.0, Vsat_pre=-20.0)
 
 
@@ -58,7 +58,7 @@ FlxBag1 = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=20,
+    G=40,
     M=0.0002,
     R=0.46,
     F_gamma=0.0289,
@@ -82,7 +82,7 @@ FlxBag2 = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=10,
+    G=20,
     M=0.0002,
     R=0.46,
     F_gamma=0.0636,
@@ -106,7 +106,7 @@ FlxChain = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=10,
+    G=20,
     M=0.0002,
     R=0.46,
     F_gamma=0.0954,
@@ -130,7 +130,7 @@ ExtBag1 = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=20,
+    G=40,
     M=0.0002,
     R=0.46,
     F_gamma=0.0289,
@@ -154,7 +154,7 @@ ExtBag2 = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=10,
+    G=20,
     M=0.0002,
     R=0.46,
     F_gamma=0.0636,
@@ -178,7 +178,7 @@ ExtChain = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=10,
+    G=20,
     M=0.0002,
     R=0.46,
     F_gamma=0.0954,
@@ -255,8 +255,8 @@ checkExtpn = []
 """
 
 for t in times:
-    I_set_FlxPN = -80
-    I_set_FlxAlpha = -50
+    I_set_FlxPN = -110
+    I_set_FlxAlpha = -100
     I_set_ExtAlpha = -60
     if t == 5:
         I_go_FlxPN = 85
