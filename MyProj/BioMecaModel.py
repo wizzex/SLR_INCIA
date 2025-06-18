@@ -31,38 +31,22 @@ class BiomechModel:
             # - (self.L_avant_bras / 2) * np.cos(self.alpha) * g    modele avec gravité
         )
         self.a = self.couple / self.inertie
-        self.v = self.v + self.a * self.dt
-        self.alpha = self.alpha + self.v * self.dt
-        self.alpha_radian = self.alpha * np.pi / 180
-        """
-        self.d2L_biceps = (
-            (
-                (
-                    self.L_biceps
-                    - (self.L_biceps_init - self.r_poulie * self.alpha_radian)
-                )
-                / self.dt
-            )
-            - self.dL_biceps
-        ) / self.dt
-        self.d2L_triceps = (
-            (
-                (
-                    (self.L_triceps_init + self.r_poulie * self.alpha_radian)
-                    - self.L_triceps
-                )
-                / self.dt
-            )
-            - self.dL_triceps
-        ) / self.dt
-        self.dL_biceps = (
-            (self.L_biceps_init - self.r_poulie * self.alpha_radian) - self.L_biceps
-        ) / self.dt
-        self.dL_triceps = (
-            (self.L_triceps_init + self.r_poulie * self.alpha_radian) - self.L_triceps
-        ) / self.dt
-        self.L_biceps = self.L_biceps_init - self.r_poulie * self.alpha_radian
-        self.L_triceps = self.L_triceps_init + self.r_poulie * self.alpha_radian
+        self.v += self.dt * self.a
+        self.alpha += self.dt * self.v
+
+        self.d2L_triceps = self.a * self.r_poulie
+        self.d2L_biceps = -self.a * self.r_poulie
+
+        self.dL_triceps += self.dt * self.d2L_triceps
+        self.dL_biceps += self.dt * self.d2L_biceps
+
+        self.L_biceps += self.dt * self.dL_biceps
+        self.L_triceps += self.dt * self.dL_triceps
+
+        # self.v = self.v + self.a * self.dt
+        # self.alpha = self.alpha + self.v * self.dt
+        # self.alpha_radian = self.alpha * np.pi / 180
+
         """
         # Calcul de la nouvelle position musculaire
         L_biceps_new = self.L_biceps_init - self.r_poulie * self.alpha_radian
@@ -81,7 +65,16 @@ class BiomechModel:
         self.L_triceps = L_triceps_new
         self.dL_biceps = dL_biceps_new
         self.dL_triceps = dL_triceps_new
-
+    
+        if self.alpha > 130:
+            self.alpha = 130
+            self.v = 0
+            self.a = 0
+            self.dL_biceps = 0
+            self.dL_triceps = 0
+            self.d2L_biceps = 0
+            self.d2L_triceps = 0
+"""
         # if self.alpha > 130:
         #   self.alpha = 130
         #   self.v = 0

@@ -40,7 +40,6 @@ FlxIa_Alpha = NonSpikingSynapse(
 FlxIa_Pn = NonSpikingSynapse(Veq=0, g_max=7, Vthr_pre=-65.0, Vsat_pre=-20.0)
 FlxPn_Alpha = NonSpikingSynapse(Veq=0, g_max=5, Vthr_pre=-65.0, Vsat_pre=-20.0)
 
-
 ExtAlpha = NonSpikingNeuron(V_rest=-70.0, tau=0.005, Rm=1.0)
 ExtPn = NonSpikingNeuron(V_rest=-65.0, tau=0.005, Rm=1.0)
 
@@ -58,7 +57,7 @@ FlxBag1 = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=40,
+    G=20,
     M=0.0002,
     R=0.46,
     F_gamma=0.0289,
@@ -69,7 +68,6 @@ FlxBag1 = MileusnicIntrafusal(
     freq_to_activation=60,
     dt=dt,
     p=2,
-    L0=0.33898,
 )
 
 FlxBag2 = MileusnicIntrafusal(
@@ -93,7 +91,6 @@ FlxBag2 = MileusnicIntrafusal(
     freq_to_activation=60,
     dt=dt,
     p=2,
-    L0=0.33898,
 )
 
 FlxChain = MileusnicIntrafusal(
@@ -117,7 +114,6 @@ FlxChain = MileusnicIntrafusal(
     freq_to_activation=90,
     dt=dt,
     p=2,
-    L0=0.33898,
 )
 
 ExtBag1 = MileusnicIntrafusal(
@@ -141,7 +137,6 @@ ExtBag1 = MileusnicIntrafusal(
     freq_to_activation=100,
     dt=dt,
     p=2,
-    L0=0.2725,
 )
 
 ExtBag2 = MileusnicIntrafusal(
@@ -165,7 +160,6 @@ ExtBag2 = MileusnicIntrafusal(
     freq_to_activation=0,
     dt=dt,
     p=2,
-    L0=0.2725,
 )
 
 ExtChain = MileusnicIntrafusal(
@@ -189,7 +183,6 @@ ExtChain = MileusnicIntrafusal(
     freq_to_activation=90,
     dt=dt,
     p=2,
-    L0=0.2725,
 )
 
 FlxSpindle = MileusnicSpindle(FlxBag1, FlxBag2, FlxChain, L0=0.385)
@@ -200,8 +193,7 @@ Biceps = HillMuscle(
     B=1,
     Kpe=100,
     Kse=1000,
-    Max_active_tension=400,
-    amp=400,
+    max_active_tension=400,
     steepness=200,
     x_offset=-0.03,
     y_offset=0,
@@ -213,8 +205,7 @@ Triceps = HillMuscle(
     B=1,
     Kpe=100,
     Kse=1000,
-    Max_active_tension=300,
-    amp=300,
+    max_active_tension=300,
     steepness=200,
     x_offset=-0.03,
     y_offset=0,
@@ -259,7 +250,7 @@ for t in times:
     I_set_FlxAlpha = -100
     I_set_ExtAlpha = -60
     if t == 5:
-        I_go_FlxPN = 85
+        I_go_FlxPN = 100
         I_go_ExtPN = 40
     """
     Mise à jour des neurones et synapses
@@ -271,13 +262,14 @@ for t in times:
         dL=MecaModel.dL_biceps,
         d2L=MecaModel.d2L_biceps,
     )
+
     FlxPn.update(I_inj=FlxIa_Pn.Isyn, I_set=I_set_FlxPN, I_go=I_go_FlxPN, dt=dt)
     FlxAlpha.update(
         I_inj=FlxPn_Alpha.Isyn + FlxIa_Alpha.Isyn, I_set=I_set_FlxAlpha, I_go=0, dt=dt
     )
-    FlxIa_Alpha.update_g(Vm_pre=FlxSpindle.V_m)
+    FlxIa_Alpha.update_g(Vm_pre=FlxSpindle.Vm)
     FlxIa_Alpha.update_Isyn(g=FlxIa_Alpha.g, Vm_post=FlxAlpha.Vm)
-    FlxIa_Pn.update_g(Vm_pre=FlxSpindle.V_m)
+    FlxIa_Pn.update_g(Vm_pre=FlxSpindle.Vm)
     FlxIa_Pn.update_Isyn(g=FlxIa_Pn.g, Vm_post=FlxPn.Vm)
     FlxPn_Alpha.update_g(Vm_pre=FlxPn.Vm)
     FlxPn_Alpha.update_Isyn(g=FlxPn_Alpha.g, Vm_post=FlxAlpha.Vm)
@@ -294,9 +286,9 @@ for t in times:
         I_inj=ExtPn_Alpha.Isyn + ExtIa_Alpha.Isyn, I_set=I_set_ExtAlpha, I_go=0, dt=dt
     )
 
-    ExtIa_Alpha.update_g(Vm_pre=ExtSpindle.V_m)
+    ExtIa_Alpha.update_g(Vm_pre=ExtSpindle.Vm)
     ExtIa_Alpha.update_Isyn(g=ExtIa_Alpha.g, Vm_post=ExtAlpha.Vm)
-    ExtIa_Pn.update_g(Vm_pre=ExtSpindle.V_m)
+    ExtIa_Pn.update_g(Vm_pre=ExtSpindle.Vm)
     ExtIa_Pn.update_Isyn(g=ExtIa_Pn.g, Vm_post=ExtPn.Vm)
     ExtPn_Alpha.update_g(Vm_pre=ExtPn.Vm)
     ExtPn_Alpha.update_Isyn(g=ExtPn_Alpha.g, Vm_post=ExtAlpha.Vm)
@@ -306,11 +298,11 @@ for t in times:
 
     MecaModel.update(F_biceps=Biceps.T, F_triceps=Triceps.T)
 
-    FlxIa_pot.append(FlxSpindle.V_m)
+    FlxIa_pot.append(FlxSpindle.Vm)
     FlxAlpha_pot.append(FlxAlpha.Vm)
     F_biceps.append(Biceps.T)
 
-    ExtIa_pot.append(ExtSpindle.V_m)
+    ExtIa_pot.append(ExtSpindle.Vm)
     ExtAlpha_pot.append(ExtAlpha.Vm)
     F_triceps.append(Triceps.T)
 
@@ -388,6 +380,7 @@ ax7.legend()
 
 # Vitesse biceps
 ax8.plot(times, vitesse_biceps, label="dL_biceps", color="orange")
+ax8.plot(times, vitesse_triceps, label="dL_triceps", color="blue")
 ax8.set_title("Vitesse d'étirement du biceps")
 ax8.set_ylabel("Vitesse (m/s)")
 ax8.grid(True)
@@ -395,6 +388,7 @@ ax8.legend()
 
 # Accélération biceps
 ax9.plot(times, accel_biceps, label="d2L_biceps", color="brown")
+ax9.plot(times, accel_triceps, label="d2L_triceps", color="yellow")
 ax9.set_title("Accélération du biceps")
 ax9.set_ylabel("Accélération (m/s²)")
 ax9.set_xlabel("Temps (s)")

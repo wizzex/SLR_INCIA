@@ -1,9 +1,7 @@
-from Neurons import NonSpikingNeuron
-from Synapses import NonSpikingSynapse
-from MileusnicSpindle import MileusnicIntrafusal, MileusnicSpindle
 import tkinter as tk
-from tkinter import simpledialog, messagebox
-
+from tkinter import simpledialog, messagebox, filedialog
+import json
+from Model import Model
 
 """"
 dic = {
@@ -19,15 +17,18 @@ dic = {
     }
 }
 """
-from Neurons import NonSpikingNeuron
-from Synapses import NonSpikingSynapse
-import tkinter as tk
-from tkinter import messagebox
 
 # Dictionnaires globaux
-dic = {"NonSpikingNeuron": {}, "NonSpikingSynapse": {}, "Spindle": {}}
-neurons = {}
-synapses = {}
+dic = {
+    "neuron": {},
+    "synapse": {},
+    "spindle": {},
+    "muscle": {},
+    "mechmodel": {},
+    "globals_parameters": {},
+    "stims": {},
+}
+
 
 # === Fonctions d'ajout ===
 
@@ -38,7 +39,7 @@ def neuron():
 
     # Choix du neurone
     tk.Label(fenetre, text="Neurone:").grid(row=0, column=0)
-    options = ["<Nouveau>"] + list(dic["NonSpikingNeuron"].keys())
+    options = ["<Nouveau>"] + list(dic["neuron"].keys())
     var_choix = tk.StringVar(fenetre)
     var_choix.set("<Nouveau>")
     menu = tk.OptionMenu(fenetre, var_choix, *options)
@@ -87,10 +88,9 @@ def neuron():
             tau = float(e_tau.get())
             Rm = float(e_rm.get())
 
-            dic["NonSpikingNeuron"][nom] = {"V_rest": V_rest, "tau": tau, "Rm": Rm}
-            neurons[nom] = NonSpikingNeuron(V_rest, tau, Rm)
+            dic["neuron"][nom] = {"V_rest": V_rest, "tau": tau, "Rm": Rm}
 
-            messagebox.showinfo("Succès", f"Neurone '{nom}' ajouté ou modifié.")
+            messagebox.showinfo("Succès", f"neurone '{nom}' ajouté ou modifié.")
             fenetre.destroy()
         except ValueError:
             messagebox.showerror("Erreur", "Paramètres invalides.")
@@ -106,7 +106,7 @@ def synapse():
 
     # Sélecteur de synapse existante
     tk.Label(fenetre, text="Sélectionner une synapse:").grid(row=0, column=0)
-    options = ["<Nouveau>"] + list(dic["NonSpikingSynapse"].keys())
+    options = ["<Nouveau>"] + list(dic["synapse"].keys())
     var_choix = tk.StringVar(fenetre)
     var_choix.set("<Nouveau>")
     menu = tk.OptionMenu(fenetre, var_choix, *options)
@@ -134,8 +134,8 @@ def synapse():
     # Remplir les champs si une synapse existante est sélectionnée
     def remplir_champs(*args):
         choix = var_choix.get()
-        if choix != "<Nouveau>" and choix in dic["NonSpikingSynapse"]:
-            props = dic["NonSpikingSynapse"][choix]
+        if choix != "<Nouveau>" and choix in dic["synapse"]:
+            props = dic["synapse"][choix]
             e_nom.delete(0, tk.END)
             e_nom.insert(0, choix)
             e_veq.delete(0, tk.END)
@@ -165,13 +165,12 @@ def synapse():
             V_thr = float(e_vthr.get())
             V_sat = float(e_vsat.get())
 
-            dic["NonSpikingSynapse"][nom] = {
+            dic["synapse"][nom] = {
                 "Veq": Veq,
                 "g_max": g_max,
                 "V_thr": V_thr,
                 "V_sat": V_sat,
             }
-            synapses[nom] = NonSpikingSynapse(Veq, g_max, V_thr, V_sat)
             messagebox.showinfo("Succès", f"Synapse '{nom}' ajoutée ou modifiée.")
             fenetre.destroy()
         except ValueError:
@@ -213,7 +212,6 @@ def spindle():
         "freq_to_activation",
         "dt",
         "p",
-        "L0",
     ]
 
     fibres = ["Bag1", "Bag2", "Chain"]
@@ -231,11 +229,11 @@ def spindle():
 
     def charger_valeurs():
         nom = entry_nom.get().strip()
-        if nom in dic.get("Spindle", {}):
+        if nom in dic.get("spindle", {}):
             for fibre in fibres:
                 for param in parametres:
                     try:
-                        val = dic["Spindle"][nom][fibre][param]
+                        val = dic["spindle"][nom][fibre][param]
                         entries[fibre][param].delete(0, tk.END)
                         entries[fibre][param].insert(0, str(val))
                     except KeyError:
@@ -249,12 +247,12 @@ def spindle():
             messagebox.showerror("Erreur", "Nom du spindle requis.")
             return
         try:
-            dic.setdefault("Spindle", {})[nom] = {}
+            dic.setdefault("spindle", {})[nom] = {}
             for fibre in fibres:
-                dic["Spindle"][nom][fibre] = {
+                dic["spindle"][nom][fibre] = {
                     param: float(entries[fibre][param].get()) for param in parametres
                 }
-            messagebox.showinfo("Succès", f"Spindle '{nom}' ajouté ou modifié.")
+            messagebox.showinfo("Succès", f"spindle '{nom}' ajouté ou modifié.")
             fenetre.destroy()
         except ValueError:
             messagebox.showerror("Erreur", "Tous les champs doivent être des nombres.")
@@ -268,56 +266,323 @@ def spindle():
     )
 
 
-def DisplayArchitecture():
+def display_architecture():
     fenetre = tk.Toplevel(root)
-    fenetre.title("Architecture des neurones")
+    fenetre.title("Architecture complète du modèle")
 
-    text = tk.Text(fenetre, width=60, height=25)
+    text = tk.Text(fenetre, width=80, height=30)
     text.pack(padx=10, pady=10)
 
-    Neuron_architecture = {
-        n: {"presynaptiques": [], "postsynaptiques": []} for n in neurons
-    }
+    def afficher_contenu(obj, indent=0):
+        espace = "    " * indent
+        if isinstance(obj, dict):
+            for cle, val in obj.items():
+                text.insert(tk.END, f"{espace}{cle}:\n")
+                afficher_contenu(val, indent + 1)
+        else:
+            text.insert(tk.END, f"{espace}{obj}\n")
 
-    for nom_synapse in synapses:
+    text.insert(tk.END, "📦 Architecture du dictionnaire `dic` :\n\n")
+    afficher_contenu(dic)
+
+
+def sauvegarder_dic():
+    filepath = filedialog.asksaveasfilename(
+        defaultextension=".json",
+        filetypes=[("Fichiers JSON", "*.json")],
+        title="Enregistrer sous",
+    )
+    if not filepath:
+        return  # L'utilisateur a annulé
+
+    try:
+        with open(filepath, "w") as f:
+            json.dump(dic, f, indent=4)
+        messagebox.showinfo(
+            "Sauvegarde réussie", f"Dictionnaire enregistré dans\n{filepath}"
+        )
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Une erreur est survenue :\n{e}")
+
+
+def charger_dic():
+    filepath = filedialog.askopenfilename(
+        defaultextension=".json",
+        filetypes=[("Fichiers JSON", "*.json")],
+        title="Ouvrir un fichier de configuration",
+    )
+    if not filepath:
+        return
+
+    try:
+        with open(filepath, "r") as f:
+            data = json.load(f)
+            dic.update(data)
+        messagebox.showinfo(
+            "Chargement réussi", f"Configuration chargée depuis\n{filepath}"
+        )
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Impossible de charger le fichier :\n{e}")
+
+
+def mise_a_jour_pre_post():
+    for synapse_name in dic["synapse"]:
         try:
-            pre, post = nom_synapse.split("_")
-            if post in Neuron_architecture:
-                Neuron_architecture[post]["presynaptiques"].append(pre)
-            if pre in Neuron_architecture:
-                Neuron_architecture[pre]["postsynaptiques"].append(post)
+            pre, post = synapse_name.split("_", 1)
+
+            dic["synapse"][synapse_name]["neuron_pre"] = pre
+            dic["synapse"][synapse_name]["neuron_post"] = post
+
+            if "inj" not in dic["neuron"][post]:
+                dic["neuron"][post]["input_synapse"] = []
+
+            # Ajout du nom de la synapse à la liste
+            dic["neuron"][post]["input_synapse"].append(synapse_name)
+
         except ValueError:
-            text.insert(tk.END, f"⚠️ Synapse mal nommée : '{nom_synapse}'\n")
+            print(f"Nom de synapse invalide : {synapse_name} (il manque un '_')")
 
-    for nom_neurone, connexions in Neuron_architecture.items():
-        text.insert(tk.END, f"🔹 Neurone : {nom_neurone}\n")
-        text.insert(
-            tk.END,
-            f"   ↳ Entrées : {', '.join(connexions['presynaptiques']) or 'aucune'}\n",
+    for muscle_name in dic["muscle"]:  # a améliorer
+        if "Flx" in muscle_name:
+            dic["muscle"][muscle_name]["neuron_pre"] = "FlxAlpha"
+        else:
+            dic["muscle"][muscle_name]["neuron_pre"] = "ExtAlpha"
+
+
+def stims():
+    fenetre = tk.Toplevel(root)
+    fenetre.title("Stimulations")
+
+    # Initialisation si nécessaire
+    if "stimulations" not in dic:
+        dic["stimulations"] = {"neuron": {}, "synapse": {}}
+
+    entrees = {}
+    row = 0
+
+    # Affichage des neurones
+    tk.Label(fenetre, text="📘 Neurones", font=("Arial", 12, "bold")).grid(
+        row=row, column=0, columnspan=3, sticky="w"
+    )
+    row += 1
+
+    for nom in dic.get("neuron", {}):
+        tk.Label(fenetre, text=nom).grid(row=row, column=0, sticky="w")
+        e1 = tk.Entry(fenetre, width=8)
+        e2 = tk.Entry(fenetre, width=8)
+
+        stim = dic["stimulations"]["neuron"].get(nom, {})
+        e1.insert(0, str(stim.get("I_set", 0.0)))
+        e2.insert(0, str(stim.get("I_go", 0.0)))
+
+        e1.grid(row=row, column=1)
+        e2.grid(row=row, column=2)
+
+        entrees[nom] = {"type": "neuron", "I_set": e1, "I_go": e2}
+        row += 1
+
+    # Affichage des synapses
+    tk.Label(fenetre, text="🔗 Synapses", font=("Arial", 12, "bold")).grid(
+        row=row, column=0, columnspan=3, sticky="w"
+    )
+    row += 1
+
+    for nom in dic.get("synapse", {}):
+        tk.Label(fenetre, text=nom).grid(row=row, column=0, sticky="w")
+        e1 = tk.Entry(fenetre, width=8)
+        e2 = tk.Entry(fenetre, width=8)
+
+        stim = dic["stimulations"]["synapse"].get(nom, {})
+        e1.insert(0, str(stim.get("g_set", 0.0)))
+        e2.insert(0, str(stim.get("g_go", 0.0)))
+
+        e1.grid(row=row, column=1)
+        e2.grid(row=row, column=2)
+
+        entrees[nom] = {"type": "synapse", "g_set": e1, "g_go": e2}
+        row += 1
+
+    def appliquer():
+        for nom, champs in entrees.items():
+            try:
+                if champs["type"] == "neuron":
+                    I_set = float(champs["I_set"].get())
+                    I_go = float(champs["I_go"].get())
+                    dic["stimulations"]["neuron"][nom] = {"I_set": I_set, "I_go": I_go}
+                elif champs["type"] == "synapse":
+                    g_set = float(champs["g_set"].get())
+                    g_go = float(champs["g_go"].get())
+                    dic["stimulations"]["synapse"][nom] = {"g_set": g_set, "g_go": g_go}
+            except ValueError:
+                messagebox.showerror("Erreur", f"Valeurs invalides pour '{nom}'")
+                return
+
+        messagebox.showinfo(
+            "Succès", "Stimulations enregistrées dans dic['stimulations']."
         )
-        text.insert(
-            tk.END,
-            f"   ↳ Sorties : {', '.join(connexions['postsynaptiques']) or 'aucune'}\n\n",
-        )
+        fenetre.destroy()
+
+    tk.Button(fenetre, text="Appliquer", command=appliquer).grid(
+        row=row, column=0, columnspan=3, pady=10
+    )
 
 
-# === Interface principale ===
-root = tk.Tk()
-root.title("Création de neurones et synapses")
+def muscle():
+    fenetre = tk.Toplevel(root)
+    fenetre.title("Ajouter ou modifier un muscle")
 
-frame = tk.Frame(root)
-frame.pack(pady=10)
+    if "muscles" not in dic:
+        dic["muscles"] = {}
 
-btn_neurone = tk.Button(frame, text="Ajouter un neurone", command=neuron)
-btn_synapse = tk.Button(frame, text="Ajouter une synapse", command=synapse)
-btn_architecture = tk.Button(
-    frame, text="Affiche l'architecture", command=DisplayArchitecture
-)
-btn_spindle = tk.Button(frame, text="Spindle", command=spindle)
+    # Liste déroulante pour sélectionner un muscle existant ou nouveau
+    tk.Label(fenetre, text="Muscle :").grid(row=0, column=0)
+    options = ["<Nouveau>"] + list(dic["muscles"].keys())
+    var_choix = tk.StringVar(fenetre)
+    var_choix.set("<Nouveau>")
+    menu = tk.OptionMenu(fenetre, var_choix, *options)
+    menu.grid(row=0, column=1)
 
-btn_neurone.grid(row=0, column=0, padx=10)
-btn_synapse.grid(row=0, column=1, padx=10)
-btn_architecture.grid(row=0, column=2, padx=10)
-btn_spindle.grid(row=1, column=0, columnspan=3, pady=10)
+    labels = [
+        "Nom",
+        "L",
+        "B",
+        "Kpe",
+        "Kse",
+        "max_active_tension",
+        "steepness",
+        "x_offset",
+        "y_offset",
+        "L_rest",
+        "L_width",
+    ]
 
-root.mainloop()
+    entrees = {}
+    for i, label in enumerate(labels):
+        tk.Label(fenetre, text=label + " :").grid(row=i + 1, column=0, sticky="w")
+        e = tk.Entry(fenetre)
+        e.grid(row=i + 1, column=1)
+        entrees[label] = e
+
+    def remplir_champs(*args):
+        nom = var_choix.get()
+        if nom != "<Nouveau>" and nom in dic["muscles"]:
+            params = dic["muscles"][nom]
+            entrees["Nom"].delete(0, tk.END)
+            entrees["Nom"].insert(0, nom)
+            for key in labels[1:]:
+                entrees[key].delete(0, tk.END)
+                entrees[key].insert(0, str(params.get(key, "")))
+        else:
+            for e in entrees.values():
+                e.delete(0, tk.END)
+
+    var_choix.trace("w", remplir_champs)
+
+    def valider():
+        try:
+            nom = entrees["Nom"].get()
+            if not nom:
+                raise ValueError("Nom vide.")
+
+            params = {}
+            for key in labels[1:]:
+                params[key] = float(entrees[key].get())
+
+            dic["muscle"][nom] = params
+
+            messagebox.showinfo("Succès", f"Muscle '{nom}' ajouté ou modifié.")
+            fenetre.destroy()
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Paramètre invalide : {e}")
+
+    tk.Button(fenetre, text="Valider", command=valider).grid(
+        row=len(labels) + 1, column=0, columnspan=2, pady=10
+    )
+
+
+def global_parameters():
+    fenetre = tk.Toplevel(root)
+    fenetre.title("Paramètres globaux")
+
+    if "globals_parameters" not in dic:
+        dic["globals_parameters"] = {}
+
+    labels = [
+        "dt",
+        "masse_avant_bras",
+        "L_avant_bras",
+        "total_time",
+        "I_set_t",
+        "I_go_t",
+    ]
+    entrees = {}
+
+    for i, label in enumerate(labels):
+        tk.Label(fenetre, text=label + " :").grid(row=i, column=0, sticky="w")
+        e = tk.Entry(fenetre)
+        e.grid(row=i, column=1)
+        entrees[label] = e
+
+        # Remplir avec valeur existante si disponible
+        if label in dic["globals_parameters"]:
+            e.insert(0, str(dic["globals_parameters"][label]))
+
+    def valider():
+        try:
+            for label in labels:
+                val = float(entrees[label].get())
+                dic["globals_parameters"][label] = val
+
+            messagebox.showinfo("Succès", "Paramètres globaux enregistrés.")
+            fenetre.destroy()
+        except ValueError:
+            messagebox.showerror(
+                "Erreur", "Tous les champs doivent contenir des nombres."
+            )
+
+    tk.Button(fenetre, text="Valider", command=valider).grid(
+        row=len(labels), column=0, columnspan=2, pady=10
+    )
+
+
+def run_model():
+    model = Model(dicModel=dic)
+    model.init()
+    model.run_model()
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    frame = tk.Frame(root)
+    frame.pack()
+
+    btn_neurone = tk.Button(frame, text="Ajouter un neurone", command=neuron)
+    btn_synapse = tk.Button(frame, text="Ajouter une synapse", command=synapse)
+    btn_architecture = tk.Button(
+        frame, text="Affiche l'architecture", command=display_architecture
+    )
+    btn_spindle = tk.Button(frame, text="Spindle", command=spindle)
+    btn_save = tk.Button(frame, text="Sauvegarder", command=sauvegarder_dic)
+    btn_load = tk.Button(frame, text="Load model", command=charger_dic)
+    btn_stim = tk.Button(frame, text="Strimulations", command=stims)
+    btn_muscle = tk.Button(frame, text="Muscle", command=muscle)
+    btn_global_parameters = tk.Button(
+        frame, text="global_parameters", command=global_parameters
+    )
+    btn_mise_a_jour_post_pre = tk.Button(
+        frame, text="MAJ post pre", command=mise_a_jour_pre_post
+    )
+    btn_run_model = tk.Button(frame, text="run_model", command=run_model)
+
+    btn_neurone.grid(row=0, column=0, padx=10)
+    btn_synapse.grid(row=0, column=1, padx=10)
+    btn_architecture.grid(row=0, column=2, padx=10)
+    btn_spindle.grid(row=0, column=3, padx=10)
+    btn_save.grid(row=0, column=4, padx=10)
+    btn_load.grid(row=0, column=5, padx=10)
+    btn_stim.grid(row=0, column=6, padx=10)
+    btn_muscle.grid(row=0, column=7, padx=10)
+    btn_global_parameters.grid(row=0, column=8, padx=10)
+    btn_mise_a_jour_post_pre.grid(row=0, column=9, padx=10)
+    btn_run_model.grid(row=0, column=10, padx=10)
+    root.mainloop()

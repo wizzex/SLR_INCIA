@@ -15,8 +15,7 @@ class HillMuscle:
         B: float,
         Kpe: float,
         Kse: float,
-        Max_active_tension: float,
-        amp: float,
+        max_active_tension: float,
         steepness: float,
         x_offset: float,
         y_offset: float,
@@ -49,13 +48,15 @@ class HillMuscle:
             rest/optimal length of the muscle m, set the shape of length tension curve m
         L_width : float
             set the shape of length tension curve m
+        T : float
+            Muscle force output
 
         """
         self.L = L
         self.B = B
         self.Kpe = Kpe
         self.Kse = Kse
-        self.amp = amp
+        self.max_active_tension = max_active_tension
         self.steepness = steepness
         self.x_offset = x_offset
         self.y_offset = y_offset
@@ -78,9 +79,11 @@ class HillMuscle:
         1)formule Animatlab
         """
         self.A = (
-            self.amp / (1 + math.exp((self.steepness) * (self.x_offset - V / 1000)))
+            self.max_active_tension
+            / (1 + math.exp((self.steepness) * (self.x_offset - V / 1000)))
             + self.y_offset
         )
+
         if self.A > 400:
             self.A = 400
         else:

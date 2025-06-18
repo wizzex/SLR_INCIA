@@ -6,16 +6,12 @@ import matplotlib.pyplot as plt
 
 """
 ----------------------------------------------------------------------------------------
-Création du mouvement en pourcentage L0 de 0.95 à 0.108 sur 20ms
+
+        Création du mouvement en pourcentage L0 de 0.95 à 0.108 sur 20ms
+
 -----------------------------------------------------------------------------------------
-# Valeurs constantes
-# start_value = 0.437
-# end_value = 0.497
-# start_value = 0.76
-# end_value = 0.82
 """
 
-print("ca marche ici")
 dt = 0.00001  # s
 time = np.arange(0, 6, dt)
 start_value = 0.95
@@ -87,7 +83,9 @@ d2L = np.gradient(dL, dt)
 """
 
 ----------------------------------------------------------------------------------------------------------------------------
-# Création d'un fuseau pour changer valeur de stimulation gamma -> gamma_freq entre 0 et 100 (en firing units)
+
+     Création d'un fuseau pour changer valeur de stimulation gamma -> gamma_freq entre 0 et 100 (en firing units)
+
 ----------------------------------------------------------------------------------------------------------------------------
 """
 Bag1Fiber = MileusnicIntrafusal(
@@ -107,7 +105,7 @@ Bag1Fiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=100,
+    gamma_freq=0,
     freq_to_activation=60,
     dt=dt,
     p=2,
@@ -131,7 +129,7 @@ Bag2Fiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=50,
+    gamma_freq=0,
     freq_to_activation=60,
     dt=dt,
     p=2,
@@ -155,7 +153,7 @@ ChainFiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=50,
+    gamma_freq=0,
     freq_to_activation=90,
     dt=dt,
     p=2,
@@ -181,52 +179,12 @@ potSpindle = []
 check_dt = []
 """
 ----------------------------------------------------------------------------------------------------
-                            SIMULATION
+                                        SIMULATION & LIST POUR GRAPH
 ----------------------------------------------------------------------------------------------------
 """
 Ia_output = []
-"""
-for t in time:
-    if t < ramp_start:
-        L = start_value
-        dL = 0.0
-        d2L = 0.0
-    elif t == (ramp_start):
-        d2L = (ramp_slope) / dt
-        dL = ramp_slope
-    elif t > (ramp_start) and t < (ramp_end):
-        d2L = 0
-        dL = ramp_slope
-        L = L + dL * dt
-    elif t == (ramp_end):
-        d2L = -ramp_slope / dt
-        dL = ramp_slope
-    elif t > (ramp_end):
-        L = end_value
-        dL = 0.0
-        d2L = 0.0
 
-    StatFiber.update(L, dt, dL, d2L)
-    DynFiber.update(L, dt, dL, d2L)
-    Spindle.update(0.156)
-    IaStat.append(StatFiber.Ia_contrib)
-    IaDyn.append(DynFiber.Ia_contrib)
-    Ia_output.append(Spindle.Ia)
-    gammaActivation.append(DynFiber.f_gamma)
-    dersecondT.append(DynFiber.d2T)
-    LL.append(DynFiber.L)
-    TT.append(DynFiber.dT)
-    dLL.append(DynFiber.dL)
-    dTT.append(DynFiber.dT)
-    d2LL.append(DynFiber.d2L)
-    niv_ac_gamma_dyn.append(DynFiber.f_gamma)
-    niv_ac_gamma_stat.append(StatFiber.f_gamma)
-    d2TT.append(DynFiber.d2T)
-"""
 for i, t in enumerate(time):
-    # Bag2Fiber.update(L=L[i], dt=dt, dL=dL[i], d2L=d2L[i])
-    # Bag1Fiber.update(L=L[i], dt=dt, dL=dL[i], d2L=d2L[i])
-    # ChainFiber.update(L=L[i], dt=dt, dL=dL[i], d2L=d2L[i])
     Spindle.update(S=0.156, L=L[i], dt=dt, dL=dL[i], d2L=d2L[i])
     IaStat.append(Bag2Fiber.Ia_contrib + ChainFiber.Ia_contrib)
     IaDyn.append(Bag1Fiber.Ia_contrib)
@@ -235,7 +193,6 @@ for i, t in enumerate(time):
     dersecondT.append(Bag1Fiber.d2T)
 
     TT.append(Bag2Fiber.dT)
-
     niv_ac_gamma_dyn.append(Bag1Fiber.f_gamma)
     niv_ac_gamma_stat.append(Bag2Fiber.f_gamma)
     d2TT.append(Bag2Fiber.d2T)
@@ -255,9 +212,11 @@ for i, t in enumerate(time):
 
 
 """
------------------------------------------------------------------
+===================================================================================
+
                       AFFICHAGE 9 subplots
-------------------------------------------------------------------
+
+===================================================================================
 """
 print("ca marche la")
 fig, axs = plt.subplots(3, 4, figsize=(10, 8))

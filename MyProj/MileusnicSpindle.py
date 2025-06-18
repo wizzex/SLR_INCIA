@@ -1,5 +1,12 @@
 import numpy as np
 
+"""
+===================================================================================
+    Mileusnic intrafusal allow to implement eahc type of intrafusal fiber, bag1, bag2 and chain 
+    according to M.Mileusnic article 2006
+===================================================================================
+"""
+
 
 class MileusnicIntrafusal:
     def __init__(
@@ -24,7 +31,6 @@ class MileusnicIntrafusal:
         freq_to_activation: float,
         dt: float,
         p: float,
-        L0: float,
     ):
         self.Ksr = Ksr  # Stiffness of series elastic component
         self.Kpr = Kpr  # Stiffness of parallel elastic component
@@ -57,7 +63,15 @@ class MileusnicIntrafusal:
         self.L = 0
         self.p = p
         self.C = 0
-        self.L0 = L0
+
+    """
+    gamma_activation_level calculates the states of the contractile part's intrafusal fiber
+    due to gamma activation
+
+    if tau == 0 means it is a chain fiber -> an other equation is used 
+
+    Equation from M.Mileusnic,2006  
+    """
 
     def gamma_activation_level(self):
         if self.tau == 0:
@@ -72,11 +86,23 @@ class MileusnicIntrafusal:
             ) / self.tau
             self.f_gamma += self.df_gamma * self.dt
 
+    """
+    update the damping of the intrafusal fiber depending on the activation of the contractile part
+
+    Equation from M.Mileusnic,2006 
+    """
+
     def update_damping(self):
         self.gamma_activation_level()
         self.B = (
             self.beta + self.beta_dyn * self.f_gamma + self.beta_stat * self.f_gamma
         )
+
+    """
+    update the tension and the Ia contribution of the intrafusal fiber 
+
+    Equation from M.Mileusnic,2006 
+    """
 
     def update(self, L, dt, dL, d2L):
         self.update_damping()
@@ -106,6 +132,22 @@ class MileusnicIntrafusal:
         self.Ia_contrib = self.G * (self.T / self.Ksr - (self.Lnsr - self.L0sr))
 
 
+"""
+==========================================================================================================
+
+    MileusnicSpindle creates a muscle spindles composed of 3 intrafusal fibers bag1, bag2 and chain.
+    Accordingly to Mileusnic article, bag2 and chain fibers contribution are summed to represent the "static" contribution 
+    and bag1 fiber represent the "dynamic" contribution. 
+    Final Ia affernet signal is a non linear summation of static and dynamic 1a contribution, the greater signal has 
+    more weight in the final Ia spindle contribution 
+
+    L0 is the rest length, allows to change unit, from meters to %L0
+
+    Equation from M.Mileusnic,2006 
+==============================================================================================================
+"""
+
+
 class MileusnicSpindle:
     def __init__(
         self,
@@ -119,7 +161,7 @@ class MileusnicSpindle:
         self.chain_fiber = chain_fiber
         self.Ia = 0
         self.stat_fiber = 0
-        self.V_m = 0
+        self.Vm = 0
         self.L0 = L0
 
     def update(self, S, L, dt, dL, d2L):
@@ -134,7 +176,7 @@ class MileusnicSpindle:
             self.Ia = self.stat_fiber + S * self.dyn_fiber.Ia_contrib
         else:
             self.Ia = self.dyn_fiber.Ia_contrib + S * self.stat_fiber
-        self.V_m = 45 * self.Ia - 65
+        self.Vm = 45 * self.Ia - 65
 
 
 def get_sign(x):
