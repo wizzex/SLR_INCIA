@@ -99,8 +99,8 @@ class HillMuscle:
         1)formule Animatlab
 
         """
-        Percentage_tension_used: float = (
-            1 - (self.L - self.L_rest) ** 2 / self.L_width**2
+        Percentage_tension_used: float = 1 - (
+            (self.L - self.L_rest) ** 2 / (self.L_width) ** 2
         )
         return Percentage_tension_used
 

@@ -105,11 +105,10 @@ Bag1Fiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=0,
+    gamma_freq=70,
     freq_to_activation=60,
     dt=dt,
     p=2,
-    L0=1,
 )
 
 Bag2Fiber = MileusnicIntrafusal(
@@ -129,11 +128,10 @@ Bag2Fiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=0,
+    gamma_freq=70,
     freq_to_activation=60,
     dt=dt,
     p=2,
-    L0=1,
 )
 
 ChainFiber = MileusnicIntrafusal(
@@ -153,11 +151,10 @@ ChainFiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=0,
+    gamma_freq=70,
     freq_to_activation=90,
     dt=dt,
     p=2,
-    L0=1,
 )
 
 Spindle = MileusnicSpindle(Bag1Fiber, Bag2Fiber, ChainFiber, 0.385)
@@ -205,9 +202,9 @@ for i, t in enumerate(time):
 
     term4.append(abs((Bag2Fiber.dL) - (Bag2Fiber.T / Bag2Fiber.Ksr)) ** Bag2Fiber.a)
 
-    term5.append(Bag1Fiber.d2T)
+    term5.append(Spindle.Vm2)
 
-    potSpindle.append(Spindle.V_m)
+    potSpindle.append(Spindle.Vm)
     check_dt.append(Bag1Fiber.dt)
 
 
@@ -252,7 +249,7 @@ ax4.legend()
 
 print("le 4")
 
-ax5.plot(time, IaStat, label="iaStat", color="green")
+ax5.plot(time, term5, label="equa plus bio", color="green")
 ax5.set_xlabel("Time (ms)")
 ax5.set_ylabel("Ia Output")
 ax5.grid(True)

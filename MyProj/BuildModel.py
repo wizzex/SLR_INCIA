@@ -270,8 +270,15 @@ def display_architecture():
     fenetre = tk.Toplevel(root)
     fenetre.title("Architecture complète du modèle")
 
-    text = tk.Text(fenetre, width=80, height=30)
-    text.pack(padx=10, pady=10)
+    fenetre.state("zoomed")
+
+    frame = tk.Frame(fenetre)
+    frame.pack(fill=tk.BOTH, expand=True)
+    scrollbar = tk.Scrollbar(frame)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    text = tk.Text(frame, yscrollcommand=scrollbar.set)
+    text.pack(fill=tk.BOTH, expand=True)
 
     def afficher_contenu(obj, indent=0):
         espace = "    " * indent
@@ -333,11 +340,12 @@ def mise_a_jour_pre_post():
             dic["synapse"][synapse_name]["neuron_pre"] = pre
             dic["synapse"][synapse_name]["neuron_post"] = post
 
-            if "inj" not in dic["neuron"][post]:
+            if dic["neuron"][post]["input_synapse"] is None:
                 dic["neuron"][post]["input_synapse"] = []
 
             # Ajout du nom de la synapse à la liste
-            dic["neuron"][post]["input_synapse"].append(synapse_name)
+            if synapse_name not in dic["neuron"][post]["input_synapse"]:
+                dic["neuron"][post]["input_synapse"].append(synapse_name)
 
         except ValueError:
             print(f"Nom de synapse invalide : {synapse_name} (il manque un '_')")

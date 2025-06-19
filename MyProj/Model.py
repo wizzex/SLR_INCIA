@@ -157,10 +157,7 @@ class Model:
                         self.dt,
                     )
             for synapse_name in self.synapses.keys():
-                if (
-                    self.dic["synapse"][synapse_name]["neuron_pre"]
-                    in self.neurons.keys()
-                ):
+                if self.dic["synapse"][synapse_name]["neuron_pre"] in self.neurons:
                     self.synapses[synapse_name].update_g(
                         self.neurons[self.dic["synapse"][synapse_name]["neuron_pre"]].Vm
                     )
@@ -176,7 +173,7 @@ class Model:
                     self.neurons[self.dic["synapse"][synapse_name]["neuron_post"]].Vm,
                 )
 
-            for muscle_name in self.muscles.keys():
+            for muscle_name in self.muscles:
                 if muscle_name == "FlxMuscle":  # a clean aussi
                     self.muscles[muscle_name].update(
                         V=self.neurons[

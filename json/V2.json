@@ -126,7 +126,7 @@
                 "C_shortening": 0.42,
                 "C_lengthening": 1.0,
                 "a": 0.3,
-                "gamma_freq": 100.0,
+                "gamma_freq": 20.0,
                 "freq_to_activation": 60.0,
                 "dt": 1e-05,
                 "p": 2.0
@@ -137,7 +137,7 @@
                 "tau": 0.0,
                 "beta": 0.0822,
                 "beta_dyn": 0.0,
-                "beta_stat": -0.69,
+                "beta_stat": -0.069,
                 "L0pr": 0.76,
                 "L0sr": 0.04,
                 "Lnsr": 0.0423,
@@ -148,7 +148,7 @@
                 "C_shortening": 0.42,
                 "C_lengthening": 1.0,
                 "a": 0.3,
-                "gamma_freq": 70.0,
+                "gamma_freq": 20.0,
                 "freq_to_activation": 90.0,
                 "dt": 1e-05,
                 "p": 2.0
@@ -205,7 +205,7 @@
                 "tau": 0.0,
                 "beta": 0.0822,
                 "beta_dyn": 0.0,
-                "beta_stat": -0.69,
+                "beta_stat": -0.069,
                 "L0pr": 0.76,
                 "L0sr": 0.04,
                 "Lnsr": 0.0423,
@@ -271,7 +271,7 @@
             },
             "FlxPn": {
                 "I_set": -10.0,
-                "I_go": 10.0
+                "I_go": 25.0
             },
             "ExtAlpha": {
                 "I_set": -5.0,

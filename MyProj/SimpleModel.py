@@ -35,17 +35,17 @@ FlxAlpha = NonSpikingNeuron(V_rest=-70.0, tau=0.005, Rm=1.0)
 FlxPn = NonSpikingNeuron(V_rest=-65.0, tau=0.005, Rm=1.0)
 
 FlxIa_Alpha = NonSpikingSynapse(
-    Veq=0, g_max=20, Vthr_pre=-65.0, Vsat_pre=-20.0
+    Veq=0, g_max=1, Vthr_pre=-65.0, Vsat_pre=-20.0
 )  # modif les synapses pour que les pps soient pris en compte
-FlxIa_Pn = NonSpikingSynapse(Veq=0, g_max=7, Vthr_pre=-65.0, Vsat_pre=-20.0)
-FlxPn_Alpha = NonSpikingSynapse(Veq=0, g_max=5, Vthr_pre=-65.0, Vsat_pre=-20.0)
+FlxIa_Pn = NonSpikingSynapse(Veq=0, g_max=2, Vthr_pre=-65.0, Vsat_pre=-20.0)
+FlxPn_Alpha = NonSpikingSynapse(Veq=0, g_max=4, Vthr_pre=-65.0, Vsat_pre=-20.0)
 
 ExtAlpha = NonSpikingNeuron(V_rest=-70.0, tau=0.005, Rm=1.0)
 ExtPn = NonSpikingNeuron(V_rest=-65.0, tau=0.005, Rm=1.0)
 
-ExtIa_Alpha = NonSpikingSynapse(Veq=0, g_max=8, Vthr_pre=-65.0, Vsat_pre=-20.0)
-ExtIa_Pn = NonSpikingSynapse(Veq=0, g_max=20, Vthr_pre=-65.0, Vsat_pre=-20.0)
-ExtPn_Alpha = NonSpikingSynapse(Veq=0, g_max=5, Vthr_pre=-65.0, Vsat_pre=-20.0)
+ExtIa_Alpha = NonSpikingSynapse(Veq=0, g_max=4, Vthr_pre=-65.0, Vsat_pre=-20.0)
+ExtIa_Pn = NonSpikingSynapse(Veq=0, g_max=4, Vthr_pre=-65.0, Vsat_pre=-20.0)
+ExtPn_Alpha = NonSpikingSynapse(Veq=0, g_max=4, Vthr_pre=-65.0, Vsat_pre=-20.0)
 
 FlxBag1 = MileusnicIntrafusal(
     Ksr=10.4649,
@@ -87,7 +87,7 @@ FlxBag2 = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=100,
+    gamma_freq=20,
     freq_to_activation=60,
     dt=dt,
     p=2,
@@ -110,7 +110,7 @@ FlxChain = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=70,
+    gamma_freq=20,
     freq_to_activation=90,
     dt=dt,
     p=2,
@@ -126,14 +126,14 @@ ExtBag1 = MileusnicIntrafusal(
     L0pr=0.76,
     L0sr=0.04,
     Lnsr=0.0423,
-    G=40,
+    G=20,
     M=0.0002,
     R=0.46,
     F_gamma=0.0289,
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=100,
+    gamma_freq=50,
     freq_to_activation=100,
     dt=dt,
     p=2,
@@ -156,8 +156,8 @@ ExtBag2 = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=60,
-    freq_to_activation=0,
+    gamma_freq=50,
+    freq_to_activation=60,
     dt=dt,
     p=2,
 )
@@ -197,7 +197,7 @@ Biceps = HillMuscle(
     steepness=200,
     x_offset=-0.03,
     y_offset=0,
-    L_rest=0.33898,  # 0.385 sur animatlab
+    L_rest=0.385,  # 0.385 sur animatlab
     L_width=0.20,
 )
 Triceps = HillMuscle(
@@ -209,7 +209,7 @@ Triceps = HillMuscle(
     steepness=200,
     x_offset=-0.03,
     y_offset=0,
-    L_rest=0.34,  # 0.385 sur animatlab
+    L_rest=0.385,  # 0.385 sur animatlab
     L_width=0.18,
 )
 
@@ -246,12 +246,12 @@ checkExtpn = []
 """
 
 for t in times:
-    I_set_FlxPN = -110
-    I_set_FlxAlpha = -100
-    I_set_ExtAlpha = -60
+    I_set_FlxPN = -10
+    I_set_FlxAlpha = -5
+    I_set_ExtAlpha = -5
     if t == 5:
-        I_go_FlxPN = 100
-        I_go_ExtPN = 40
+        I_go_FlxPN = 40
+        I_go_ExtPN = 0
     """
     Mise à jour des neurones et synapses
     """

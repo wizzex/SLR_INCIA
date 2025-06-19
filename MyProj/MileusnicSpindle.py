@@ -163,6 +163,9 @@ class MileusnicSpindle:
         self.stat_fiber = 0
         self.Vm = 0
         self.L0 = L0
+        self.Vm2 = 0
+        self.k = 4  # controle de la pente de la sigmoide
+        self.a0 = 0.5  # centre de la monté (= milieu pour le niveau act)
 
     def update(self, S, L, dt, dL, d2L):
         L = L / self.L0
@@ -177,6 +180,7 @@ class MileusnicSpindle:
         else:
             self.Ia = self.dyn_fiber.Ia_contrib + S * self.stat_fiber
         self.Vm = 45 * self.Ia - 65
+        self.Vm2 = -70 + 30 / (1 + np.exp(-self.k * (self.Ia - self.a0)))
 
 
 def get_sign(x):
