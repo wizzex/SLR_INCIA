@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # Parameters
 amp = 400
 steepness = 200
-x_offset = -0.03
+x_offset = -0.05
 y_offset = 0
 
 # Vary V from -80 to 20

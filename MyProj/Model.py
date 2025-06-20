@@ -111,11 +111,12 @@ class Model:
         self.d2LTriceps = []
 
     def run_model(self):
-        self.time = np.arange(
-            0,
-            self.dic["globals_parameters"]["total_time"],
-            self.dt,
-        )
+        total_time = self.dic["globals_parameters"]["total_time"]
+        n_steps = int(total_time / self.dt)
+
+        self.time = np.linspace(
+            0, total_time, n_steps, endpoint=False
+        )  # linspace more robustg than arrange with very little timesteps
 
         for t in self.time:
             for spindle_name in self.spindles:
@@ -182,9 +183,6 @@ class Model:
                         dt=self.dt,
                         L=self.MechModel.L_biceps,
                         dL=self.MechModel.dL_biceps,
-                    )
-                    print(
-                        self.neurons[self.dic["muscle"][muscle_name]["neuron_pre"]].Vm
                     )
                 else:
                     self.muscles[muscle_name].update(

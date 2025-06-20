@@ -233,7 +233,7 @@
             "steepness": 200.0,
             "x_offset": -0.03,
             "y_offset": 0.0,
-            "L_rest": 0.385,
+            "L_rest": 0.34,
             "L_width": 0.2,
             "neuron_pre": "FlxAlpha"
         },
@@ -246,7 +246,7 @@
             "steepness": 200.0,
             "x_offset": -0.03,
             "y_offset": 0.0,
-            "L_rest": 0.385,
+            "L_rest": 0.34,
             "L_width": 0.18,
             "neuron_pre": "ExtAlpha"
         }
