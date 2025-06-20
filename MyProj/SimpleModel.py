@@ -238,6 +238,8 @@ angle = []
 checkFlxpn = []
 checkExtpn = []
 
+FlxIa_pot_bio = []
+
 
 """
 ------------------------------------------------------------------------
@@ -268,7 +270,9 @@ for t in times:
         I_inj=FlxPn_Alpha.Isyn + FlxIa_Alpha.Isyn, I_set=I_set_FlxAlpha, I_go=0, dt=dt
     )
     FlxIa_Alpha.update_g(Vm_pre=FlxSpindle.Vm)
-    FlxIa_Alpha.update_Isyn(g=FlxIa_Alpha.g, Vm_post=FlxAlpha.Vm)
+    FlxIa_Alpha.update_Isyn(
+        g=FlxIa_Alpha.g, Vm_post=FlxAlpha.Vm
+    )  # JAI CHANGE ET MIS LE PLUS BIO A REMODIF EQUA DE BASE LINEAIRE
     FlxIa_Pn.update_g(Vm_pre=FlxSpindle.Vm)
     FlxIa_Pn.update_Isyn(g=FlxIa_Pn.g, Vm_post=FlxPn.Vm)
     FlxPn_Alpha.update_g(Vm_pre=FlxPn.Vm)
@@ -293,12 +297,13 @@ for t in times:
     ExtPn_Alpha.update_g(Vm_pre=ExtPn.Vm)
     ExtPn_Alpha.update_Isyn(g=ExtPn_Alpha.g, Vm_post=ExtAlpha.Vm)
 
-    Biceps.update(V=FlxAlpha.Vm, dt=dt, dL=dL_biceps)
-    Triceps.update(V=ExtAlpha.Vm, dt=dt, dL=dL_triceps)
+    Biceps.update(V=FlxAlpha.Vm, dt=dt, L=MecaModel.L_biceps, dL=MecaModel.dL_biceps)
+    Triceps.update(V=ExtAlpha.Vm, dt=dt, L=MecaModel.L_triceps, dL=MecaModel.dL_triceps)
 
     MecaModel.update(F_biceps=Biceps.T, F_triceps=Triceps.T)
 
     FlxIa_pot.append(FlxSpindle.Vm)
+    FlxIa_pot_bio.append(FlxSpindle.Vm2)
     FlxAlpha_pot.append(FlxAlpha.Vm)
     F_biceps.append(Biceps.T)
 
@@ -402,7 +407,7 @@ ax10.grid(True)
 ax10.legend()
 
 # Longueur biceps
-ax11.plot(times, checkFlxpn, label="FlxPN", color="green")
+ax11.plot(times, FlxIa_pot_bio, label="FlxIaBIO", color="green")
 ax11.plot(times, checkExtpn, label="ExtPN", color="red")
 ax11.set_title("potentiel PN")
 ax11.set_ylabel("mV")

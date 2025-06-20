@@ -156,7 +156,7 @@ class Model:
                         self.dic["stimulations"]["neuron"][neuron_name]["I_go"],
                         self.dt,
                     )
-            for synapse_name in self.synapses.keys():
+            for synapse_name in self.synapses:
                 if self.dic["synapse"][synapse_name]["neuron_pre"] in self.neurons:
                     self.synapses[synapse_name].update_g(
                         self.neurons[self.dic["synapse"][synapse_name]["neuron_pre"]].Vm
@@ -180,7 +180,11 @@ class Model:
                             self.dic["muscle"][muscle_name]["neuron_pre"]
                         ].Vm,
                         dt=self.dt,
+                        L=self.MechModel.L_biceps,
                         dL=self.MechModel.dL_biceps,
+                    )
+                    print(
+                        self.neurons[self.dic["muscle"][muscle_name]["neuron_pre"]].Vm
                     )
                 else:
                     self.muscles[muscle_name].update(
@@ -188,6 +192,7 @@ class Model:
                             self.dic["muscle"][muscle_name]["neuron_pre"]
                         ].Vm,
                         dt=self.dt,
+                        L=self.MechModel.L_triceps,
                         dL=self.MechModel.dL_triceps,
                     )
 
