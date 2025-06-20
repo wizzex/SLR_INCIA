@@ -104,7 +104,7 @@ class HillMuscle:
         )
         return Percentage_tension_used
 
-    def update(self, V: float, dt: float, dL: float):
+    def update(self, V: float, dt: float, L: float, dL: float):
         """
 
 
@@ -113,7 +113,7 @@ class HillMuscle:
             V : float
                 entering stimulus in the force generator
             dt : float
-                time step ms
+                time step s
             dL : float
                 muscle length change m
 
@@ -127,7 +127,7 @@ class HillMuscle:
         4)apply length tension relationship to get the new appliable muscle force in the mechanical model
 
         """
-        self.L += dL * dt
+        self.L = L
         self.stimulus_tension(V)
         self.T += (
             self.Kse
