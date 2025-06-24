@@ -230,11 +230,11 @@
             "Kpe": 100.0,
             "Kse": 1000.0,
             "max_active_tension": 400.0,
-            "steepness": 200.0,
-            "x_offset": -0.03,
-            "y_offset": 0.0,
+            "steepness": 150.0,
+            "x_offset": -0.04,
+            "y_offset": -20,
             "L_rest": 0.34,
-            "L_width": 0.2,
+            "L_width": 0.12,
             "neuron_pre": "FlxAlpha"
         },
         "ExtMuscle": {
@@ -243,11 +243,11 @@
             "Kpe": 100.0,
             "Kse": 1000.0,
             "max_active_tension": 300.0,
-            "steepness": 200.0,
-            "x_offset": -0.03,
-            "y_offset": 0.0,
+            "steepness": 150.0,
+            "x_offset": -0.04,
+            "y_offset": -20,
             "L_rest": 0.34,
-            "L_width": 0.18,
+            "L_width": 0.12,
             "neuron_pre": "ExtAlpha"
         }
     },
