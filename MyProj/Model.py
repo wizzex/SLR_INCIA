@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 class Model:
     def __init__(self, dicModel: dict):
         self.dic = dicModel
-        self.neurons = {}
-        self.synapses = {}
-        self.spindles = {}
+        self.neuron = {}
+        self.synapse = {}
+        self.spindle = {}
         self.intrafusalfibers = {}
-        self.muscles = {}
+        self.muscle = {}
         self.dt = self.dic["globals_parameters"]["dt"]
         self.time = []
 
@@ -28,71 +28,58 @@ class Model:
         """
         Crée toutes les instances à partir du dictionnaire self.dic
         """
+
         if "neuron" in self.dic:
-            for nom, params in self.dic["neuron"].items():
+            for neuron_name in self.dic["neuron"]:
+                params = self.dic["neuron"][neuron_name]["params"]
                 try:
-                    self.neurons[nom] = NonSpikingNeuron(
-                        V_rest=params["V_rest"],
-                        tau=params["tau"],
-                        Rm=params["Rm"],
-                    )
+                    self.neuron[neuron_name] = NonSpikingNeuron(**params)
                 except Exception as e:
-                    print(f" Erreur création neurone '{nom}': {e}")
+                    print(f" Erreur création neurone '{neuron_name}': {e}")
 
-                # Création des synapses
+        # Création des synapse
         if "synapse" in self.dic:
-            for nom, params in self.dic["synapse"].items():
+            for synapse_name in self.dic["synapse"]:
+                params = self.dic["synapse"][synapse_name]["params"]
                 try:
-                    self.synapses[nom] = NonSpikingSynapse(
-                        Veq=params["Veq"],
-                        g_max=params["g_max"],
-                        Vthr_pre=params["V_thr"],
-                        Vsat_pre=params["V_sat"],
-                    )
+                    self.synapse[synapse_name] = NonSpikingSynapse(**params)
                 except Exception as e:
-                    print(f" Erreur création synapse '{nom}': {e}")
+                    print(f" Erreur création synapse '{synapse_name}': {e}")
 
-        # Création des muscles
+        # Création des muscle
         if "muscle" in self.dic:
-            for nom, params in self.dic["muscle"].items():
+            for muscle_name in self.dic["muscle"]:
+                params = self.dic["muscle"][muscle_name]["params"]
                 try:
-                    self.muscles[nom] = HillMuscle(
-                        L=params["L"],
-                        B=params["B"],
-                        Kpe=params["Kpe"],
-                        Kse=params["Kse"],
-                        max_active_tension=params["max_active_tension"],
-                        steepness=params["steepness"],
-                        x_offset=params["x_offset"],
-                        y_offset=params["y_offset"],
-                        L_rest=params["L_rest"],
-                        L_width=params["L_width"],
-                    )
+                    self.muscle[muscle_name] = HillMuscle(**params)
                 except Exception as e:
-                    print(f" Erreur création muscle '{nom}': {e}")
+                    print(f" Erreur création muscle '{muscle_name}': {e}")
 
         if "spindle" in self.dic:
             for spindle_name in self.dic["spindle"]:
                 for intrafusalfiber_name in self.dic["spindle"][spindle_name]:
+                    params = self.dic["spindle"][spindle_name][intrafusalfiber_name][
+                        "params"
+                    ]
                     self.intrafusalfibers[spindle_name + "_" + intrafusalfiber_name] = (
-                        MileusnicIntrafusal(
-                            **self.dic["spindle"][spindle_name][intrafusalfiber_name]
-                        )
+                        MileusnicIntrafusal(**params)
                     )
-                    print(f" {spindle_name}_{intrafusalfiber_name} bueno")
-                self.spindles[spindle_name] = MileusnicSpindle(
+                self.spindle[spindle_name] = MileusnicSpindle(
                     self.intrafusalfibers[spindle_name + "_" + "Bag1"],
                     self.intrafusalfibers[spindle_name + "_" + "Bag2"],
                     self.intrafusalfibers[spindle_name + "_" + "Chain"],
-                    0.385,
+                    L0=self.dic["muscle"][spindle_name[:3] + "Muscle"]["params"][
+                        "L_rest"
+                    ],
+                    S=self.dic["globals_parameters"][spindle_name + "_S"],
                 )
 
         self.MechModel = BiomechModel(
             m=self.dic["globals_parameters"]["masse_avant_bras"],
             L_avant_bras=self.dic["globals_parameters"]["L_avant_bras"],
             dt=self.dt,
-            L_biceps=self.muscles["FlxMuscle"].L,
-            L_triceps=self.muscles["ExtMuscle"].L,
+            L_FlxMuscle=self.muscle["FlxMuscle"].L,
+            L_ExtMuscle=self.muscle["ExtMuscle"].L,
         )
         self.FlxIa = []
         self.ExtIa = []
@@ -116,111 +103,87 @@ class Model:
 
         self.time = np.linspace(
             0, total_time, n_steps, endpoint=False
-        )  # linspace more robustg than arrange with very little timesteps
+        )  # linspace more robust than arrange with very little timesteps
 
         for t in self.time:
-            for spindle_name in self.spindles:
-                if spindle_name == "FlxSpindle":
-                    self.spindles[spindle_name].update(
-                        S=0.156,
-                        L=self.MechModel.L_biceps,
-                        dt=self.dt,
-                        dL=self.MechModel.dL_biceps,
-                        d2L=self.MechModel.d2L_biceps,
-                    )
-                else:
-                    self.spindles[spindle_name].update(
-                        S=0.156,
-                        L=self.MechModel.L_triceps,
-                        dt=self.dt,
-                        dL=self.MechModel.dL_triceps,
-                        d2L=self.MechModel.d2L_triceps,
-                    )
-            for neuron_name in self.neurons:
+            for spindle_name in self.spindle:
+                self.spindle[spindle_name].update(
+                    L=self.MechModel.L[spindle_name[:3]],
+                    dL=self.MechModel.dL[spindle_name[:3]],
+                    d2L=self.MechModel.d2L[spindle_name[:3]],
+                    dt=self.dt,
+                )
+            for neuron_name in self.neuron:
                 I_inj_sum = sum(
-                    self.synapses[syn_name].Isyn
+                    self.synapse[syn_name].Isyn
                     for syn_name in self.dic["neuron"][neuron_name]["input_synapse"]
-                    if syn_name in self.synapses
+                    if syn_name in self.synapse
                 )
 
                 if t < 5:
-                    self.neurons[neuron_name].update(
+                    self.neuron[neuron_name].update(
                         I_inj_sum,
                         self.dic["stimulations"]["neuron"][neuron_name]["I_set"],
                         0,
                         self.dt,
                     )
                 else:
-                    self.neurons[neuron_name].update(
+                    self.neuron[neuron_name].update(
                         I_inj_sum,
                         self.dic["stimulations"]["neuron"][neuron_name]["I_set"],
                         self.dic["stimulations"]["neuron"][neuron_name]["I_go"],
                         self.dt,
                     )
-            for synapse_name in self.synapses:
-                if self.dic["synapse"][synapse_name]["neuron_pre"] in self.neurons:
-                    self.synapses[synapse_name].update_g(
-                        self.neurons[self.dic["synapse"][synapse_name]["neuron_pre"]].Vm
+            for synapse_name in self.synapse:
+                if self.dic["synapse"][synapse_name]["neuron_pre"] in self.neuron:
+                    self.synapse[synapse_name].update_g(
+                        self.neuron[self.dic["synapse"][synapse_name]["neuron_pre"]].Vm
                     )
                 else:
-                    self.synapses[synapse_name].update_g(
-                        self.spindles[
-                            self.dic["synapse"][synapse_name]["neuron_pre"]
-                        ].Vm
+                    self.synapse[synapse_name].update_g(
+                        self.spindle[self.dic["synapse"][synapse_name]["neuron_pre"]].Vm
                     )
 
-                self.synapses[synapse_name].update_Isyn(
-                    self.synapses[synapse_name].g,
-                    self.neurons[self.dic["synapse"][synapse_name]["neuron_post"]].Vm,
+                self.synapse[synapse_name].update_Isyn(
+                    self.synapse[synapse_name].g,
+                    self.neuron[self.dic["synapse"][synapse_name]["neuron_post"]].Vm,
                 )
 
-            for muscle_name in self.muscles:
-                if muscle_name == "FlxMuscle":  # a clean aussi
-                    self.muscles[muscle_name].update(
-                        V=self.neurons[
-                            self.dic["muscle"][muscle_name]["neuron_pre"]
-                        ].Vm,
-                        dt=self.dt,
-                        L=self.MechModel.L_biceps,
-                        dL=self.MechModel.dL_biceps,
-                    )
-                else:
-                    self.muscles[muscle_name].update(
-                        V=self.neurons[
-                            self.dic["muscle"][muscle_name]["neuron_pre"]
-                        ].Vm,
-                        dt=self.dt,
-                        L=self.MechModel.L_triceps,
-                        dL=self.MechModel.dL_triceps,
-                    )
+            for muscle_name in self.muscle:
+                self.muscle[muscle_name].update(
+                    V=self.neuron[self.dic["muscle"][muscle_name]["neuron_pre"]].Vm,
+                    dt=self.dt,
+                    L=self.MechModel.L[muscle_name[:3]],
+                    dL=self.MechModel.dL[muscle_name[:3]],
+                )
 
             self.MechModel.update(
-                F_biceps=self.muscles["FlxMuscle"].T,
-                F_triceps=self.muscles["ExtMuscle"].T,
+                F_biceps=self.muscle["FlxMuscle"].T,
+                F_triceps=self.muscle["ExtMuscle"].T,
             )
 
-            self.FlxIa.append(self.spindles["FlxSpindle"].Vm)
-            self.ExtIa.append(self.spindles["ExtSpindle"].Vm)
+            self.FlxIa.append(self.spindle["FlxSpindle"].Vm)
+            self.ExtIa.append(self.spindle["ExtSpindle"].Vm)
 
-            self.FlxPn.append(self.neurons["FlxPn"].Vm)
-            self.ExtPn.append(self.neurons["ExtPn"].Vm)
+            self.FlxPn.append(self.neuron["FlxPn"].Vm)
+            self.ExtPn.append(self.neuron["ExtPn"].Vm)
 
-            self.FlxAlpha.append(self.neurons["FlxAlpha"].Vm)
-            self.ExtAlpha.append(self.neurons["ExtAlpha"].Vm)
+            self.FlxAlpha.append(self.neuron["FlxAlpha"].Vm)
+            self.ExtAlpha.append(self.neuron["ExtAlpha"].Vm)
 
-            self.FlxMuscle.append(self.muscles["FlxMuscle"].T)
-            self.ExtMuscle.append(self.muscles["ExtMuscle"].T)
+            self.FlxMuscle.append(self.muscle["FlxMuscle"].T)
+            self.ExtMuscle.append(self.muscle["ExtMuscle"].T)
 
             self.Angle.append(self.MechModel.alpha)
 
-            self.LongueurBiceps.append(self.muscles["FlxMuscle"].L)
-            self.LongueurTriceps.append(self.muscles["ExtMuscle"].L)
+            self.LongueurBiceps.append(self.muscle["FlxMuscle"].L)
+            self.LongueurTriceps.append(self.muscle["ExtMuscle"].L)
 
-            self.dLBiceps.append(self.MechModel.dL_biceps)
-            self.dLTriceps.append(self.MechModel.dL_triceps)
+            self.dLBiceps.append(self.MechModel.dL["Flx"])
+            self.dLTriceps.append(self.MechModel.dL["Ext"])
 
-            self.d2LBiceps.append(self.MechModel.d2L_biceps)
-            self.d2LTriceps.append(self.MechModel.d2L_triceps)
+            self.d2LBiceps.append(self.MechModel.d2L["Flx"])
+            self.d2LTriceps.append(self.MechModel.d2L["Ext"])
 
         fig, axs = plt.subplots(2, 4, figsize=(18, 8))
         fig.suptitle("Activités neuronales, musculaires et mécaniques", fontsize=16)
@@ -268,7 +231,7 @@ class Model:
         # 6. Longueurs musculaires
         axs[5].plot(self.time, self.LongueurBiceps, label="Biceps", color="blue")
         axs[5].plot(self.time, self.LongueurTriceps, label="Triceps", color="red")
-        axs[5].set_title("Longueur des muscles")
+        axs[5].set_title("Longueur des muscle")
         axs[5].set_ylabel("Longueur (m)")
         axs[5].set_xlabel("Temps (s)")
         axs[5].legend()
@@ -277,7 +240,7 @@ class Model:
         # 6. Longueurs musculaires
         axs[6].plot(self.time, self.dLBiceps, label="Biceps", color="blue")
         axs[6].plot(self.time, self.dLTriceps, label="Triceps", color="red")
-        axs[6].set_title("vitesse des muscles")
+        axs[6].set_title("vitesse des muscle")
         axs[6].set_ylabel("Longueur (m)")
         axs[6].set_xlabel("Temps (s)")
         axs[6].legend()
@@ -286,7 +249,7 @@ class Model:
         # 6. Longueurs musculaires
         axs[7].plot(self.time, self.d2LBiceps, label="Biceps", color="blue")
         axs[7].plot(self.time, self.d2LTriceps, label="Triceps", color="red")
-        axs[7].set_title("accélération des muscles")
+        axs[7].set_title("accélération des muscle")
         axs[7].set_ylabel("Longueur (m)")
         axs[7].set_xlabel("Temps (s)")
         axs[7].legend()

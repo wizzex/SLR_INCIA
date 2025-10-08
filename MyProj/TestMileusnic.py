@@ -105,7 +105,7 @@ Bag1Fiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=70,
+    gamma_freq=0,
     freq_to_activation=60,
     dt=dt,
     p=2,
@@ -128,7 +128,7 @@ Bag2Fiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=70,
+    gamma_freq=0,
     freq_to_activation=60,
     dt=dt,
     p=2,
@@ -151,13 +151,13 @@ ChainFiber = MileusnicIntrafusal(
     C_shortening=0.42,
     C_lengthening=1,
     a=0.3,
-    gamma_freq=70,
+    gamma_freq=0,
     freq_to_activation=90,
     dt=dt,
     p=2,
 )
 
-Spindle = MileusnicSpindle(Bag1Fiber, Bag2Fiber, ChainFiber, 0.385)
+Spindle = MileusnicSpindle(Bag1Fiber, Bag2Fiber, ChainFiber, 0.385, 0.156)
 
 IaStat = []
 IaDyn = []
@@ -182,7 +182,7 @@ check_dt = []
 Ia_output = []
 
 for i, t in enumerate(time):
-    Spindle.update(S=0.156, L=L[i], dt=dt, dL=dL[i], d2L=d2L[i])
+    Spindle.update(L=L[i], dt=dt, dL=dL[i], d2L=d2L[i])
     IaStat.append(Bag2Fiber.Ia_contrib + ChainFiber.Ia_contrib)
     IaDyn.append(Bag1Fiber.Ia_contrib)
     Ia_output.append(Spindle.Ia)
@@ -215,7 +215,6 @@ for i, t in enumerate(time):
 
 ===================================================================================
 """
-print("ca marche la")
 fig, axs = plt.subplots(3, 4, figsize=(10, 8))
 ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12 = axs.flatten()
 
@@ -241,13 +240,11 @@ ax3.set_ylim(-1, 1)
 ax3.grid(True)
 ax3.legend()
 
-ax4.plot(time, IaDyn, label="Ia dyn", color="green")
+ax4.plot(time, IaStat, label="Ia stat", color="green")
 ax4.set_xlabel("Time (ms)")
 ax4.set_ylabel("Ia Output")
 ax4.grid(True)
 ax4.legend()
-
-print("le 4")
 
 ax5.plot(time, term5, label="equa plus bio", color="green")
 ax5.set_xlabel("Time (ms)")
@@ -285,8 +282,6 @@ ax9.set_ylabel("Ia Output")
 ax9.grid(True)
 ax9.legend()
 
-print("le 5")
-
 ax10.plot(time, term3, label="sign", color="green")
 ax10.set_xlabel("Time (ms)")
 ax10.set_xlim(0, 6)
@@ -299,7 +294,6 @@ ax11.set_xlabel("Time (ms)")
 ax11.set_ylabel("Ia Output")
 ax11.grid(True)
 ax11.legend()
-print("juste avant tout")
 
 ax12.plot(time, term5, label="d2T", color="green")
 ax12.set_xlim(1.5, 3)
@@ -307,7 +301,6 @@ ax12.set_xlabel("Time (ms)")
 ax12.set_ylabel("Ia Output")
 ax12.grid(True)
 ax12.legend()
-print("le tout")
 
 plt.tight_layout()
 plt.show()

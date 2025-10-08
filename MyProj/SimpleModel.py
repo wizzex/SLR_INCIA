@@ -15,12 +15,12 @@ import matplotlib.pyplot as plt
 dt = 0.00001
 T_total = 10
 times = np.arange(0, T_total, dt)
-dL_biceps = 0
-dL_triceps = 0
-d2L_biceps = 0
-d2L_triceps = 0
-L_biceps = 0.33989
-L_triceps = 0.2725
+dL_FlxMuscle = 0
+dL_ExtMuscle = 0
+d2L_FlxMuscle = 0
+d2L_ExtMuscle = 0
+L_FlxMuscle = 0.33989
+L_ExtMuscle = 0.2725
 I_go_FlxPN = 0
 I_go_ExtPN = 0
 I_set_FlxPN = 0
@@ -185,8 +185,8 @@ ExtChain = MileusnicIntrafusal(
     p=2,
 )
 
-FlxSpindle = MileusnicSpindle(FlxBag1, FlxBag2, FlxChain, L0=0.385)
-ExtSpindle = MileusnicSpindle(ExtBag1, ExtBag2, ExtChain, L0=0.385)
+FlxSpindle = MileusnicSpindle(FlxBag1, FlxBag2, FlxChain, L0=0.385, S=0.156)
+ExtSpindle = MileusnicSpindle(ExtBag1, ExtBag2, ExtChain, L0=0.385, S=0.156)
 
 Biceps = HillMuscle(
     L=0.33898,
@@ -214,7 +214,7 @@ Triceps = HillMuscle(
 )
 
 MecaModel = BiomechModel(
-    dt=dt, m=1.6, L_avant_bras=0.35, L_biceps=0.33898, L_triceps=0.2725
+    dt=dt, m=1.6, L_avant_bras=0.35, L_FlxMuscle=0.33898, L_ExtMuscle=0.2725
 )
 
 FlxIa_pot = []
@@ -227,11 +227,11 @@ F_triceps = []
 
 longueur_biceps = []
 vitesse_biceps = []
-accel_biceps = []
+acceL_FlxMuscle = []
 
 longueur_triceps = []
 vitesse_triceps = []
-accel_triceps = []
+acceL_ExtMuscle = []
 
 angle = []
 
@@ -258,11 +258,10 @@ for t in times:
     Mise à jour des neurones et synapses
     """
     FlxSpindle.update(
-        0.156,
-        L=MecaModel.L_biceps,
-        dt=dt,
-        dL=MecaModel.dL_biceps,
-        d2L=MecaModel.d2L_biceps,
+        S=0.156,
+        L=MecaModel.L_FlxMuscle,
+        dL=MecaModel.dL_FlxMuscle,
+        d2L=MecaModel.d2L_FlxMuscle,
     )
 
     FlxPn.update(I_inj=FlxIa_Pn.Isyn, I_set=I_set_FlxPN, I_go=I_go_FlxPN, dt=dt)
@@ -280,10 +279,10 @@ for t in times:
 
     ExtSpindle.update(
         0.156,
-        L=MecaModel.L_triceps,
+        L=MecaModel.L_ExtMuscle,
         dt=dt,
-        dL=MecaModel.dL_triceps,
-        d2L=MecaModel.d2L_triceps,
+        dL=MecaModel.dL_ExtMuscle,
+        d2L=MecaModel.d2L_ExtMuscle,
     )
     ExtPn.update(I_inj=ExtIa_Pn.Isyn, I_set=0, I_go=I_go_ExtPN, dt=dt)
     ExtAlpha.update(
@@ -297,8 +296,12 @@ for t in times:
     ExtPn_Alpha.update_g(Vm_pre=ExtPn.Vm)
     ExtPn_Alpha.update_Isyn(g=ExtPn_Alpha.g, Vm_post=ExtAlpha.Vm)
 
-    Biceps.update(V=FlxAlpha.Vm, dt=dt, L=MecaModel.L_biceps, dL=MecaModel.dL_biceps)
-    Triceps.update(V=ExtAlpha.Vm, dt=dt, L=MecaModel.L_triceps, dL=MecaModel.dL_triceps)
+    Biceps.update(
+        V=FlxAlpha.Vm, dt=dt, L=MecaModel.L_FlxMuscle, dL=MecaModel.dL_FlxMuscle
+    )
+    Triceps.update(
+        V=ExtAlpha.Vm, dt=dt, L=MecaModel.L_ExtMuscle, dL=MecaModel.dL_ExtMuscle
+    )
 
     MecaModel.update(F_biceps=Biceps.T, F_triceps=Triceps.T)
 
@@ -311,13 +314,13 @@ for t in times:
     ExtAlpha_pot.append(ExtAlpha.Vm)
     F_triceps.append(Triceps.T)
 
-    longueur_biceps.append(MecaModel.L_biceps)
-    vitesse_biceps.append(MecaModel.dL_biceps)
-    accel_biceps.append(MecaModel.d2L_biceps)
+    longueur_biceps.append(MecaModel.L_FlxMuscle)
+    vitesse_biceps.append(MecaModel.dL_FlxMuscle)
+    acceL_FlxMuscle.append(MecaModel.d2L_FlxMuscle)
 
-    longueur_triceps.append(MecaModel.L_triceps)
-    vitesse_triceps.append(MecaModel.dL_triceps)
-    accel_triceps.append(MecaModel.d2L_triceps)
+    longueur_triceps.append(MecaModel.L_ExtMuscle)
+    vitesse_triceps.append(MecaModel.dL_ExtMuscle)
+    acceL_ExtMuscle.append(MecaModel.d2L_ExtMuscle)
 
     angle.append(MecaModel.alpha)
 
@@ -376,24 +379,24 @@ ax6.grid(True)
 ax6.legend()
 
 # Longueur biceps
-ax7.plot(times, longueur_biceps, label="L_biceps", color="green")
-ax7.plot(times, longueur_triceps, label="L_triceps", color="red")
+ax7.plot(times, longueur_biceps, label="L_FlxMuscle", color="green")
+ax7.plot(times, longueur_triceps, label="L_ExtMuscle", color="red")
 ax7.set_title("Longueur du biceps")
 ax7.set_ylabel("Longueur (m)")
 ax7.grid(True)
 ax7.legend()
 
 # Vitesse biceps
-ax8.plot(times, vitesse_biceps, label="dL_biceps", color="orange")
-ax8.plot(times, vitesse_triceps, label="dL_triceps", color="blue")
+ax8.plot(times, vitesse_biceps, label="dL_FlxMuscle", color="orange")
+ax8.plot(times, vitesse_triceps, label="dL_ExtMuscle", color="blue")
 ax8.set_title("Vitesse d'étirement du biceps")
 ax8.set_ylabel("Vitesse (m/s)")
 ax8.grid(True)
 ax8.legend()
 
 # Accélération biceps
-ax9.plot(times, accel_biceps, label="d2L_biceps", color="brown")
-ax9.plot(times, accel_triceps, label="d2L_triceps", color="yellow")
+ax9.plot(times, acceL_FlxMuscle, label="d2L_FlxMuscle", color="brown")
+ax9.plot(times, acceL_ExtMuscle, label="d2L_ExtMuscle", color="yellow")
 ax9.set_title("Accélération du biceps")
 ax9.set_ylabel("Accélération (m/s²)")
 ax9.set_xlabel("Temps (s)")
@@ -415,7 +418,7 @@ ax11.grid(True)
 ax11.legend()
 
 # Vitesse biceps
-ax12.plot(times, vitesse_biceps, label="dL_biceps", color="orange")
+ax12.plot(times, vitesse_biceps, label="dL_FlxMuscle", color="orange")
 ax12.set_title("Vitesse d'étirement du biceps")
 ax12.set_ylabel("Vitesse (m/s)")
 ax12.grid(True)

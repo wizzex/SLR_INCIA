@@ -55,6 +55,6 @@ class NonSpikingNeuron:
         """
         self.I_leak = self.g_leak * (self.Vm - self.V_rest)
         self.I_tot = I_inj + I_set + I_go - self.I_leak
-        dVm = (-self.Vm + self.V_rest + (self.I_tot * self.Rm)) / self.tau
+        dVm = (self.I_tot * self.Rm) / self.tau
         self.Vm += dVm * dt
         return self.Vm

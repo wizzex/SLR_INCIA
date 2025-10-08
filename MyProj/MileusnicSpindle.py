@@ -139,7 +139,7 @@ class MileusnicIntrafusal:
     Accordingly to Mileusnic article, bag2 and chain fibers contribution are summed to represent the "static" contribution 
     and bag1 fiber represent the "dynamic" contribution. 
     Final Ia affernet signal is a non linear summation of static and dynamic 1a contribution, the greater signal has 
-    more weight in the final Ia spindle contribution 
+    more important weight in the final Ia spindle contribution 
 
     L0 is the rest length, allows to change unit, from meters to %L0
 
@@ -155,6 +155,7 @@ class MileusnicSpindle:
         bag2_fiber: MileusnicIntrafusal,
         chain_fiber: MileusnicIntrafusal,
         L0: float,
+        S: float,
     ):
         self.bag2_fiber = bag2_fiber
         self.dyn_fiber = bag1_fiber
@@ -166,8 +167,9 @@ class MileusnicSpindle:
         self.Vm2 = 0
         self.k = 4  # controle de la pente de la sigmoide
         self.a0 = 0.5  # centre de la monté (= milieu pour le niveau act)
+        self.S = S
 
-    def update(self, S, L, dt, dL, d2L):
+    def update(self, L, dt, dL, d2L):
         L = L / self.L0
         dL = dL / self.L0
         d2L = d2L / self.L0
@@ -176,9 +178,9 @@ class MileusnicSpindle:
         self.chain_fiber.update(L=L, dt=dt, dL=dL, d2L=d2L)
         self.stat_fiber = self.bag2_fiber.Ia_contrib + self.chain_fiber.Ia_contrib
         if self.stat_fiber > self.dyn_fiber.Ia_contrib:
-            self.Ia = self.stat_fiber + S * self.dyn_fiber.Ia_contrib
+            self.Ia = self.stat_fiber + self.S * self.dyn_fiber.Ia_contrib
         else:
-            self.Ia = self.dyn_fiber.Ia_contrib + S * self.stat_fiber
+            self.Ia = self.dyn_fiber.Ia_contrib + self.S * self.stat_fiber
         self.Vm = 45 * self.Ia - 65
         self.Vm2 = -70 + 30 / (1 + np.exp(-self.k * (self.Ia - self.a0)))
 

@@ -129,17 +129,16 @@ class HillMuscle:
         """
         self.L = L
         self.stimulus_tension(V)
+        self.A *= self.length_tension()
         self.T += (
             self.Kse
             / (self.B)
             * (
-                self.Kpe * (self.L - self.L_rest)
-                + self.B * (dL)
-                - (1 + (self.Kpe / self.Kse)) * self.T
-                + self.A
+                #                self.Kpe * (self.L - self.L_rest) # a retirer pcq lrest toujours superieur à L et donc pas de force?
+                +self.B * (dL) - (1 + (self.Kpe / self.Kse)) * self.T + self.A
             )
         ) * (dt)
         if self.T < 0:
             self.T = 0
-        self.T *= self.length_tension()
+
         return self.T
