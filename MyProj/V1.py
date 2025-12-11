@@ -177,6 +177,8 @@ def remove_duplicate(lst):
 
 
 # ===== Construction of list_order0 ===========================================    
+
+
 print("Order0")
 dic_order = {}
 list_order0 = [neur for neur in list_neurons_names 
