@@ -127,7 +127,7 @@
                     "a": 0.3,
                     "gamma_freq": 50.0,
                     "freq_to_activation": 60.0,
-                    "dt": 1e-05,
+                    "dt": 0.0002,
                     "p": 2.0
                 }
             },
@@ -151,7 +151,7 @@
                     "a": 0.3,
                     "gamma_freq": 80.0,
                     "freq_to_activation": 90.0,
-                    "dt": 1e-05,
+                    "dt": 0.0002,
                     "p": 2.0
                 }
             },
@@ -175,7 +175,7 @@
                     "a": 0.3,
                     "gamma_freq": 80.0,
                     "freq_to_activation": 90.0,
-                    "dt": 1e-05,
+                    "dt": 0.0002,
                     "p": 2.0
                 }
             }
@@ -201,7 +201,7 @@
                     "a": 0.3,
                     "gamma_freq": 100.0,
                     "freq_to_activation": 60.0,
-                    "dt": 1e-05,
+                    "dt": 0.0002,
                     "p": 2.0
                 }
             },
@@ -223,9 +223,9 @@
                     "C_shortening": 0.42,
                     "C_lengthening": 1.0,
                     "a": 0.3,
-                    "gamma_freq": 0.0,
+                    "gamma_freq": 0,
                     "freq_to_activation": 60.0,
-                    "dt": 1e-05,
+                    "dt": 0.005,
                     "p": 2.0
                 }
             },
@@ -233,7 +233,7 @@
                 "params": {
                     "Ksr": 10.4649,
                     "Kpr": 0.15,
-                    "tau": 0.0,
+                    "tau": 0.205,
                     "beta": 0.0822,
                     "beta_dyn": 0.0,
                     "beta_stat": -0.069,
@@ -247,9 +247,9 @@
                     "C_shortening": 0.42,
                     "C_lengthening": 1.0,
                     "a": 0.3,
-                    "gamma_freq": 0.0,
+                    "gamma_freq": 0,
                     "freq_to_activation": 60.0,
-                    "dt": 1e-05,
+                    "dt": 0.005,
                     "p": 2.0
                 }
             }
@@ -289,7 +289,7 @@
     },
     "mechmodel": {},
     "globals_parameters": {
-        "dt": 1e-05,
+        "dt": 0.0002,
         "masse_avant_bras": 1.6,
         "L_avant_bras": 0.35,
         "total_time": 10.0,
@@ -309,15 +309,15 @@
             },
             "FlxPn": {
                 "I_set": -10.0,
-                "I_go": 25.0
+                "I_go": 10.0
             },
             "ExtAlpha": {
                 "I_set": -10.0,
                 "I_go": 0.0
             },
             "ExtPn": {
-                "I_set": 0.0,
-                "I_go": 5.0
+                "I_set": -10.0,
+                "I_go": 0.0
             }
         },
         "synapse": {

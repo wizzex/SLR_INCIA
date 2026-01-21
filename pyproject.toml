@@ -11,13 +11,20 @@ dependencies = [
     "pandas (>=2.2.3,<3.0.0)",
     "numpy (>=2.2.6,<3.0.0)",
     "matplotlib (>=3.10.3,<4.0.0)",
-    "openpyxl (>=3.1.5,<4.0.0)"
+    "openpyxl (>=3.1.5,<4.0.0)",
+    "requests (>=2.32.5,<3.0.0)",
+    "setuptools (>=80.9.0,<81.0.0)",
+    "components @ file:///C:/Users/llemarcha002/PythonProjects/Spinal_Like_Regulator_Project/SLR_INCIA/MyProj/slr_components"
 ]
 
 [tool.poetry]
-packages = [{include = "neuronnetworkproject", from = "src"}]
+
+packages = [{include = "neuronnetworkproject", from = "src"},
+]
 
 
+[tool.poetry.dependencies]
+components = {develop = true}
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
