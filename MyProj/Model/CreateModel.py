@@ -172,8 +172,8 @@ class Model:
 
             self.Angle.append(self.MechModel.alpha)
 
-            self.LongueurBiceps.append(self.muscle["FlxMuscle"].L)
-            self.LongueurTriceps.append(self.muscle["ExtMuscle"].L)
+            self.LongueurBiceps.append(self.MechModel.L["Flx"])
+            self.LongueurTriceps.append(self.MechModel.L["Ext"])
 
             self.dLBiceps.append(self.MechModel.dL["Flx"])
             self.dLTriceps.append(self.MechModel.dL["Ext"])

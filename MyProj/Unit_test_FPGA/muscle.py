@@ -1,8 +1,8 @@
-from components import HillMuscle
-from components import NonSpikingNeuron
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import slr_components_FPGA.components_FPGA.ModelEquations 
 
 
 print("This script tests the behavior of the biceps for an isometric contraction\n\n")

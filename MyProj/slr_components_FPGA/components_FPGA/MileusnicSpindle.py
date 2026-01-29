@@ -1,5 +1,5 @@
 import numpy as np
-
+import components_FPGA
 """
 ===================================================================================
     Mileusnic intrafusal allow to implement eahc type of intrafusal fiber, bag1, bag2 and chain 
@@ -73,30 +73,6 @@ class MileusnicIntrafusal:
     Equation from M.Mileusnic,2006  
     """
 
-    def gamma_activation_level(self):
-        if self.tau == 0:
-            self.f_gamma = (self.gamma_freq) ** self.p / (
-                (self.gamma_freq) ** self.p + (self.freq_to_activation) ** self.p
-            )
-        else:
-            self.df_gamma = (
-                (self.gamma_freq) ** self.p
-                / ((self.gamma_freq) ** self.p + (self.freq_to_activation) ** self.p)
-                - self.f_gamma
-            ) / self.tau
-            self.f_gamma += self.df_gamma * self.dt
-
-    """
-    update the damping of the intrafusal fiber depending on the activation of the contractile part
-
-    Equation from M.Mileusnic,2006 
-    """
-
-    def update_damping(self):
-        self.gamma_activation_level()
-        self.B = (
-            self.beta + self.beta_dyn * self.f_gamma + self.beta_stat * self.f_gamma
-        )
 
     """
     update the tension and the Ia contribution of the intrafusal fiber 
@@ -105,32 +81,12 @@ class MileusnicIntrafusal:
     """
 
     def update(self, L, dt, dL, d2L):
-        self.update_damping()
-        self.L = L
-        self.dt = dt
-        self.dL = dL
-        self.d2L = d2L
-        if self.dL < 0:
-            self.C = self.C_shortening
-        else:
-            self.C = self.C_lengthening
 
-        self.d2T = (self.Ksr / self.M) * (
-            self.C
-            * (self.B)
-            #* get_sign(self.dL - self.dT / self.Ksr) ICI ON FAIT UNE APPROXIMATION DE LA FORMULE DE BASE PCQ CA CREAIT DE L'INSTABILITE OSCILATIONS A 20 HZ JSP PQ 
-            #* abs(self.dL - self.dT / self.Ksr) ** self.a  
-            * (self.dL - self.dT / self.Ksr) 
-            #* (L - self.L0sr - self.T / self.Ksr - self.R)  #plus  stable quand je retire ce terme pas sur de comprendre sa logique, apparement force velocity relationship, sans ca, le damping ne dépend que de la viscosité qui change en fonction de lactivation gamma je comprend pas le - LOsr pourquoi retirer la rseting length de sr? 
-            + self.Kpr * (self.L - self.L0sr - self.T / self.Ksr - self.L0pr)
-            + self.M * d2L
-            + self.F_gamma * self.f_gamma
-            - self.T
-        )
+        self.f_gamma = eq.gamma_fusimotor_activation_update()
 
-        self.dT += self.dt * self.d2T
-        self.T += self.dt * self.dT
-        self.Ia_contrib = self.G * (self.T / self.Ksr - (self.Lnsr - self.L0sr))
+        self.B = eq.intrafusal_fiber_damping_update()
+
+        self.Ia_contrib = eq.intrafusal_fiber_Ia_update
 
 
 """
@@ -172,20 +128,12 @@ class MileusnicSpindle:
         self.S = S
 
     def update(self, L, dt, dL, d2L):
-        L = L / self.L0
-        dL = dL / self.L0
-        d2L = d2L / self.L0
-        self.dyn_fiber.update(L=L, dt=dt, dL=dL, d2L=d2L)
-        self.bag2_fiber.update(L=L, dt=dt, dL=dL, d2L=d2L)
-        self.chain_fiber.update(L=L, dt=dt, dL=dL, d2L=d2L)
-        self.stat_fiber = self.bag2_fiber.Ia_contrib + self.chain_fiber.Ia_contrib
-        if self.stat_fiber > self.dyn_fiber.Ia_contrib:
-            self.Ia = self.stat_fiber + self.S * self.dyn_fiber.Ia_contrib
-        else:
-            self.Ia = self.dyn_fiber.Ia_contrib + self.S * self.stat_fiber
-        self.Vm = 45 * self.Ia - 65
-        self.Vm2 = -70 + 30 / (1 + np.exp(-self.k * (self.Ia - self.a0)))  #to try other converting formula from firing rate to neuron potential 
+
+        self.L = L / self.L0
+        self.dL = dL / self.L0
+        self.d2L = d2L / self.L0
+
+        
+        self.Vm = eq.spindle_Ia_update()
 
 
-def get_sign(x):
-    return 1 if x >= 0 else -1

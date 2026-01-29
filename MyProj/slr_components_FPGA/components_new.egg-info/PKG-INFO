@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: components_new
+Version: 1.0
+Summary: This package contains classes to create a simple neuromusculoskeletal model
+Author: Luca LEMARCHAND
+Author-email: luca.lemarchand@u-bordeaux.fr
+Dynamic: author
+Dynamic: author-email
+Dynamic: summary

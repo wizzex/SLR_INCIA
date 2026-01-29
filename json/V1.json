@@ -67,7 +67,7 @@
         "FlxSpindle_FlxPn": {
             "params": {
                 "Veq": 0.0,
-                "g_max": 1.0,
+                "g_max": 1.5,
                 "V_thr": -65.0,
                 "V_sat": -20.0
             },
@@ -87,7 +87,7 @@
         "ExtSpindle_ExtPn": {
             "params": {
                 "Veq": 0.0,
-                "g_max": 4.0,
+                "g_max": 2.0,
                 "V_thr": -65.0,
                 "V_sat": -20.0
             },
@@ -97,7 +97,7 @@
         "ExtPn_ExtAlpha": {
             "params": {
                 "Veq": 0.0,
-                "g_max": 4.0,
+                "g_max": 2.0,
                 "V_thr": -65.0,
                 "V_sat": -20.0
             },
@@ -125,7 +125,7 @@
                     "C_shortening": 0.42,
                     "C_lengthening": 1.0,
                     "a": 0.3,
-                    "gamma_freq": 50.0,
+                    "gamma_freq": 60.0,
                     "freq_to_activation": 60.0,
                     "dt": 0.0002,
                     "p": 2.0
@@ -199,7 +199,7 @@
                     "C_shortening": 0.42,
                     "C_lengthening": 1.0,
                     "a": 0.3,
-                    "gamma_freq": 100.0,
+                    "gamma_freq": 90.0,
                     "freq_to_activation": 60.0,
                     "dt": 0.0002,
                     "p": 2.0
@@ -223,7 +223,7 @@
                     "C_shortening": 0.42,
                     "C_lengthening": 1.0,
                     "a": 0.3,
-                    "gamma_freq": 0,
+                    "gamma_freq": 50,
                     "freq_to_activation": 60.0,
                     "dt": 0.005,
                     "p": 2.0
@@ -247,7 +247,7 @@
                     "C_shortening": 0.42,
                     "C_lengthening": 1.0,
                     "a": 0.3,
-                    "gamma_freq": 0,
+                    "gamma_freq": 50,
                     "freq_to_activation": 60.0,
                     "dt": 0.005,
                     "p": 2.0
@@ -308,16 +308,16 @@
                 "I_go": 0.0
             },
             "FlxPn": {
-                "I_set": -10.0,
-                "I_go": 10.0
+                "I_set": -15.0,
+                "I_go": 5.0
             },
             "ExtAlpha": {
-                "I_set": -10.0,
+                "I_set": -0.0,
                 "I_go": 0.0
             },
             "ExtPn": {
-                "I_set": -10.0,
-                "I_go": 0.0
+                "I_set": -5.0,
+                "I_go": 1.0
             }
         },
         "synapse": {
@@ -334,7 +334,7 @@
             "FlxSpindle_FlxPn": {
                 "g_set": 0.0,
                 "g_go": 0.0,
-                "g_max": 1.0
+                "g_max": 1.5
             },
             "ExtSpindle_ExtAlpha": {
                 "g_set": 0.0,
@@ -344,12 +344,12 @@
             "ExtSpindle_ExtPn": {
                 "g_set": 0.0,
                 "g_go": 0.0,
-                "g_max": 4.0
+                "g_max": 2.0
             },
             "ExtPn_ExtAlpha": {
                 "g_set": 0.0,
                 "g_go": 0.0,
-                "g_max": 4.0
+                "g_max": 2.0
             }
         }
     }
