@@ -10,15 +10,15 @@ print("This script tests the behavior of the biceps for an isometric contraction
 
 # neurons characteristics 
 V_rest = float(input("Choose motoneuron characteristics (mV, usually -65): \n"))
-tau = float(input("Time constant tau (s, usually 5): \n"))
+tau = float(input("Time constant tau (s, usually 0.005): \n"))
 Rm = float(input("Membrane resistance Rm (MΩ, usually 1): \n"))
 
 motoneuron = NonSpikingNeuron(V_rest=V_rest, tau=tau, Rm=Rm, nb_bits_integer= nb_bits_integer, nb_bits_decimal = nb_bits_decimal)
 
-T_total = 1000 * float(input("Total simulation time (s): \n"))
+T_total = float(input("Total simulation time (s): \n"))
 
 Inj_go = float(input("Value for injected current nA: \n"))
-stim_time = 1000 *float(input("Duration of stimulation (s): \n"))
+stim_time = float(input("Duration of stimulation (s): \n"))
 
 Inj_go = SFixed(Inj_go, nb_bits_integer,nb_bits_decimal)
 zero_fixed = SFixed(0, nb_bits_integer,nb_bits_decimal)
@@ -56,12 +56,7 @@ Biceps = HillMuscle(
     nb_bits_decimal =nb_bits_decimal
 )
 
-
-
-motoneuron = NonSpikingNeuron(V_rest=-70.0, tau=5, Rm=1.0,nb_bits_integer = nb_bits_integer, nb_bits_decimal = nb_bits_decimal)
-
-
-dt = 0.2
+dt = 0.0002
 time = np.arange(0, T_total, dt)
 force = []
 vitesse = []
@@ -105,6 +100,8 @@ for t in time:
 
     motoneuron.update(zero_fixed, zero_fixed, I_go=I_go, dt=dt_fixed)
     Biceps.update(motoneuron.Vm, dt_fixed, L=L, dL=0)   ###    en condition isométrique 
+
+
 
 
     force.append(Biceps.T.float_value)

@@ -1,5 +1,17 @@
-#from components import *  
-from componentsfpga import * 
+"""
+This is the class containing a neuromusculoskeltal model 
+
+From a json file, it creates instances of a every components of the model using classes within the package slr_components 
+-NonSpikingNeurons
+-NonSpikingSynapses
+-HillMuscle
+-MileusnicSpidle
+-BiomechModel
+
+You can create a json containg the neuromusculoskeltal components and their parameters using the script Build&RunModel.py
+
+"""  
+from components import * 
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -14,11 +26,14 @@ class Model:
         self.muscle = {}
         self.dt = self.dic["globals_parameters"]["dt"]
         self.time = []
+        self.Angle = []
 
     """
     ============================================================================
                             Creates every class instances
     ============================================================================
+
+    Generate the complete neuromusculoskelal model
     """
 
     def init_neuromusculoskeletal_model(self):
@@ -86,13 +101,33 @@ class Model:
         self.ExtAlpha = []
         self.FlxMuscle = []
         self.ExtMuscle = []
-        self.Angle = []
         self.LongueurBiceps = []
         self.LongueurTriceps = []
         self.dLBiceps = []
         self.dLTriceps = []
         self.d2LBiceps = []
         self.d2LTriceps = []
+
+    """
+    ===========================================================================
+                    Run the model using the json parameters 
+    ===========================================================================
+    
+    The model is run by updating all instances at every time steps 
+
+    Instances order is determined by the class to which instances belong:
+
+    class updating order:
+
+    1) spindle
+    2) neurons
+    3) synapses
+    4) muscles
+    5) musculoskeletal model 
+
+    All instances of the same class are updates at once 
+
+    """
 
     def run_model(self):
         total_time = self.dic["globals_parameters"]["total_time"]
@@ -255,7 +290,22 @@ class Model:
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         plt.show()
 
+    """
+    ============================================================================
+    TO DO, initiate model but just the neural part, to compare with fpga. 
+    ============================================================================
 
+    THis is a half loop, its goal is for comparison with FPGA neural network,
+    (without actuators and physical model)
+
+    inputs of this neural model are 
+    kinematics of a movement: L, dL, d2L
+    force: T 
+    this input are input to muscle spindles and gto which are then integrated into interneurons and motoneurons 
+
+    output of the neural model are contractile element force (active force) 
+
+    """
     def init_neural_model(self):
         """
         Crée toutes les instances à partir du dictionnaire self.dic
@@ -307,7 +357,11 @@ class Model:
                 )
 
 
-
+    """
+    ============================================================================
+    Run the half loop model, the neural model
+    ============================================================================
+    """
     def run_neural_model(self, input_kinematic):
 
         L = []

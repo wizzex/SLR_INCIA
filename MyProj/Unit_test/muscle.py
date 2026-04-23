@@ -50,10 +50,6 @@ Biceps = HillMuscle(
 )
 
 
-
-motoneuron = NonSpikingNeuron(V_rest=-70.0, tau=0.005, Rm=1.0)
-
-
 dt = 0.0002
 time = np.arange(0, T_total, dt)
 force = []

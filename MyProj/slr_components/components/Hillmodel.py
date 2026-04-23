@@ -119,10 +119,10 @@ class HillMuscle:
             -------
             T : float
                 muscle force N
-        1)calculate new muscle length
-        2)calculate active force
-        3)calculate new muscle force
-        4)apply length tension relationship to get the new appliable muscle force in the mechanical model
+        
+        1) calculate active tension depending on the level of depalorization of alpha motoneuron
+        2) calcule the percentage of tension that is gonna be used depending on the muscle length
+        3) apply this active force in the hill muscle model, see shadmher and wise for equations
 
         """
         self.L = L

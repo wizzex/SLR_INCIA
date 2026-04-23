@@ -7,9 +7,10 @@ Created on Mon May 19 17:33:43 2025
 import numpy as np
 from componentsfpga import *
 import matplotlib.pyplot as plt
+                        ########### Si on applique sur toutes les variables 
+nb_bits_integer = 15   ########## a cause de valeur dVm  
+nb_bits_decimal = 13   ############ 8096 valeurs au moins pcq pas de temps tres petit 
 
-nb_bits_integer = 15
-nb_bits_decimal = 15
 
 print("This script tests the behavior of a single neuron with a given injected current\n\n")
 
@@ -20,13 +21,15 @@ Rm = float(input("Membrane resistance Rm (MΩ, usually 1): \n"))
 
 Neuron = NonSpikingNeuron(V_rest=V_rest, tau=tau, Rm=Rm, nb_bits_integer=nb_bits_integer, nb_bits_decimal=nb_bits_decimal)
 
-
-# Simulation parameters
-dt = 0.0002  # s                  PROBLEME PRECISION TROP GRANDE DT VA ETRE = A 0
+dt = 0.0002  # s
 T_total = float(input("Total simulation time (s): \n"))
 
-steps = int(T_total / dt)
-times = np.arange(0, T_total, dt)
+# Nombre de pas exact
+steps = int(T_total / dt) + 1  # +1 pour inclure le dernier point
+
+# Tableau de temps avec np.linspace pour éviter les erreurs flottantes
+times = np.linspace(0, T_total, steps)
+
 
 # Stockage des données
 Vms = []
@@ -43,7 +46,6 @@ stim_time = float(input("Duration of stimulation (s): \n"))
 
 print(f"\nThe simulation lasts {T_total} s, the injected current starts at {T_total/2} s with a value of {Inj_go.float_value}\n")
 
-
 dt = SFixed(dt, nb_bits_integer,nb_bits_decimal)
 zero_fixed = SFixed(0, nb_bits_integer,nb_bits_decimal)
 # Boucle de simulation
@@ -57,6 +59,8 @@ for t in times:
 
     # Mise à jour du neurone
     Neuron.update(I_inj, zero_fixed, zero_fixed, dt)
+    print("tau value is ", Neuron.tau.float_value)
+    print("\n Rm value is ", Neuron.Rm.float_value)
    
     
     # Stockage des données

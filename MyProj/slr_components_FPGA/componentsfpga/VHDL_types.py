@@ -31,11 +31,14 @@ class SFixed:
     
     def check_sfixed_overflow(self):
 
-        max_raw = self.scale * (1 << self.nb_bits_decimal)
+        max_raw = self.scale * (1 << (self.nb_bits_integer-1))   #pcq c'est des sfixed le -1
         min_raw = -max_raw
 
         if (self.raw < min_raw) or (self.raw > max_raw):
-            print(self.float_value, " doesnt fit in the number of bits for the integral part of this sfixed :", self.nb_bits_integer)
+            raise OverflowError(
+            f"SFixed overflow: {self.float_value} "
+            f"ne rentre pas dans {self.nb_bits_integer} bits entiers "
+            f"(raw={self.raw}, range=[{min_raw}, {max_raw}])")
 
 
 

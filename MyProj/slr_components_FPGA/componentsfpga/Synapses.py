@@ -30,8 +30,9 @@ class NonSpikingSynapse:
         self.V_thr =  SFixed(V_thr, nb_bits_integer,nb_bits_decimal)
         self.V_sat =  SFixed(V_sat, nb_bits_integer,nb_bits_decimal)
 
-        self.g =  SFixed(0, 8,8)  # (uS)
-        self.Isyn =  SFixed(0, 8,8)
+        self.g =  SFixed(0, nb_bits_decimal,nb_bits_integer)  # (uS)
+        self.Isyn =  SFixed(0, nb_bits_decimal,nb_bits_integer)  # (uS)
+
 
         self.nb_bits_integer = nb_bits_integer
         self.nb_bits_decimal = nb_bits_decimal

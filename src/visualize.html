@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Spinal Network</title>
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/cytoscape-svg"></script>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #f9f9f9; }
+    #controls { padding: 6px 10px; background: #fff; border-bottom: 1px solid #ddd; }
+    #cy { width: 100vw; height: calc(100vh - 40px); }
+    button { margin: 3px 6px; padding: 4px 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div id="controls">
+  <button onclick="exportSVG()">⬇ Export SVG</button>
+</div>
+<div id="cy"></div>
+
+<script>
+fetch("graph.json")
+  .then(r => r.json())
+  .then(data => {
+    window.cy = cytoscape({
+      container: document.getElementById("cy"),
+      elements: data.elements,
+
+      layout: {
+        name: "cose",
+        padding: 60,
+        nodeRepulsion: 12000,   // push nodes further apart
+        idealEdgeLength: 180,
+        gravity: 0.25,
+        animate: false
+      },
+
+      style: [
+
+        /* ══════════ NODES ══════════ */
+
+        {
+          selector: "node[kind='neuron']",
+          style: {
+            "shape": "ellipse",
+            "width": 90,
+            "height": 45,
+            "background-color": "#e8e8e8",
+            "border-width": 2,
+            "border-color": "#444",
+            "label": "data(id)",
+            "text-valign": "center",
+            "text-halign": "center",
+            "font-size": 12,
+            "font-weight": "bold"
+          }
+        },
+
+        {
+          selector: "node[kind='muscle']",
+          style: {
+            "shape": "rectangle",
+            "background-color": "transparent",
+            "background-opacity": 0,
+            "border-width": 0,
+            
+            // "min-width": 50,
+            "min-height": 200,  
+
+            // "padding": "20px",                  // ← still needed to make room for child spindle
+            "background-image": "url('muscle.svg')",
+            "background-fit": "contain",
+            // "background-clip": "none",          // ← don't clip to shape
+            // "background-image-opacity": 1,
+            // "bounds-expansion": 0,             // ← gives the image extra room outside the node box
+            
+            "label": "data(id)",
+            "text-valign": "top",
+            "text-halign": "center",
+            "font-size": 12,
+            // "font-weight": "bold",
+            // "color": "#2255aa"
+            
+          }
+        },
+
+        {
+          selector: "node[kind='spindle']",
+          style: {
+            "shape": "rectangle",
+            "height": 100,
+            "background-image": "url('spindle.svg')",
+            "background-fit": "contain",
+            "background-clip": "none",
+            "background-opacity": 0,
+            // ───────────────────────────────────────────────────────────
+            "label": "data(id)",
+            "text-valign": "bottom",
+            "text-halign": "center",
+            "font-size": 10
+          }
+        },
+
+        /* ══════════ EDGES ══════════ */
+
+        /*
+         * FIX 1 – boolean selectors:
+         *   [?excitatory]  matches when excitatory is true  (truthy)
+         *   [!excitatory]  matches when excitatory is false (falsy)
+         *
+         * FIX 2 – mapData domain now covers actual weight range (0–5).
+         *
+         * FIX 4 – curve-style bezier on ALL edges lets Cytoscape
+         *         automatically fan out parallel edges between the same
+         *         node pair.  control-point-step-size increases the gap.
+         *
+         * FIX 5 – all edges are now curved.
+         */
+
+        {
+          selector: "edge[kind='synapse'][?excitatory]",
+          style: {
+            "curve-style": "unbundled-bezier",
+            "control-point-distances": "data(cpd)",   // pulls the value from JSON
+            "control-point-weights": 0.5,             // midpoint of the edge
+            "target-arrow-shape": "tee",
+            "target-arrow-fill": "hollow",
+            "target-arrow-color": "#000",
+            "arrow-scale": 1,
+            "line-color": "#222",
+            "width": "mapData(weight, 0, 5, 1, 8)"
+          }
+        },
+        {
+          selector: "edge[kind='synapse'][!excitatory]",
+          style: {
+            "curve-style": "unbundled-bezier",
+            "control-point-distances": "data(cpd)",
+            "control-point-weights": 0.5,
+            "target-arrow-shape": "circle",
+            "target-arrow-fill": "filled",
+            "target-arrow-color": "#c00",
+            "arrow-scale": 1,
+            "line-color": "#c00",
+            "width": "mapData(weight, 0, 5, 1, 8)"
+          }
+        },
+        {
+          selector: "edge[kind='muscle_link']",
+          style: {
+            "curve-style": "unbundled-bezier",
+            "control-point-distances": 40,
+            "control-point-weights": 0.5,
+            "z-index": 2,
+            // "source-endpoint": "outside-to-node",
+            // "target-endpoint": "outside-to-node",
+            "line-style": "dashed",
+            "line-dash-pattern": [8, 4],
+            "line-color": "#888",
+            "width": 1,
+            "target-arrow-shape": "none"
+          }
+        }
+      ]
+    });
+  });
+
+function exportSVG() {
+  const svg = cy.svg({ scale: 1, full: true });
+  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "spinal_network.svg";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

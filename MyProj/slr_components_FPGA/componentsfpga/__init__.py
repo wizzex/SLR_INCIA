@@ -4,6 +4,9 @@ from .Neurons import NonSpikingNeuron
 from .Synapses import NonSpikingSynapse 
 from .VHDL_types import SFixed
 from .Hillmodel import HillMuscle
+from . import operation_vhdl as op
+from . import type_conversion as tc
+
 
 
 __all__ = [
@@ -12,5 +15,7 @@ __all__ = [
     "NonSpikingNeuron",
     "NonSpikingSynapse",
     "SFixed",
-    "HillMuscle"
+    "HillMuscle",
+    "tc",
+    "op"
 ]

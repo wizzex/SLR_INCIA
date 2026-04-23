@@ -1,7 +1,6 @@
 
-from VHDL_types import SFixed
-import type_conversion as tc
-import operation_vhdl as op
+from componentsfpga import *
+
 
 def choose_two_sfixed():
 
@@ -58,7 +57,7 @@ if choice ==1:
 
     A_SFixed, B_SFixed = choose_two_sfixed()
 
-    C_SFixed = op.add(A_SFixed, B_SFixed, A_SFixed.nb_bits_integer, B_SFixed.nb_bits_decimal)
+    C_SFixed = op.add(A_SFixed, B_SFixed)
 
     print(f"Sum of the fixed {A_SFixed.fixed} and {B_SFixed.fixed} is {C_SFixed.float_value} \n")
 
@@ -70,7 +69,7 @@ elif choice ==2:
 
     A_SFixed, B_SFixed = choose_two_sfixed()
 
-    C_SFixed = op.mul(A_SFixed, B_SFixed, B_SFixed.nb_bits_decimal)
+    C_SFixed = op.mul(A_SFixed, B_SFixed)
 
 
     print_result(C_SFixed)
@@ -80,7 +79,7 @@ elif choice == 3:
 
     A_SFixed, B_SFixed = choose_two_sfixed()
 
-    C_SFixed = op.sub(A_SFixed, B_SFixed, A_SFixed.nb_bits_integer, A_SFixed.nb_bits_decimal)
+    C_SFixed = op.sub(A_SFixed, B_SFixed)
 
     print_result(C_SFixed)
 
@@ -89,7 +88,7 @@ elif choice == 4:
 
     A_SFixed, B_SFixed = choose_two_sfixed()
 
-    C_SFixed = op.div(A_SFixed, B_SFixed, A_SFixed.nb_bits_decimal)
+    C_SFixed = op.div(A_SFixed, B_SFixed)
 
     print_result(C_SFixed)
 

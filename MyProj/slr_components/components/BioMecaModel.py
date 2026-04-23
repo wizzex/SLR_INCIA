@@ -84,6 +84,11 @@ class BiomechModel:
                 self.v = 0
                 self.a = 0
 
+    def update_tau(self, F_biceps, F_triceps):
+            self.couple = (
+                F_biceps * self.r_poulie - F_triceps * self.r_poulie
+                # - (self.L_avant_bras / 2) * np.cos(self.alpha) * g    modele avec gravité
+            )
 
     """def update(self, F_biceps, F_triceps):
         self.couple = (

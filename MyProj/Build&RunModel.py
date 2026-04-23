@@ -1,10 +1,58 @@
+
+"""
+
+This script allow to create a neuromusculoskeltal model using the class model: 
+
+Here you have a GUI allowing to:
+- Create an instance of Model
+- Save a model 
+- Load a model 
+- Change the general parameters of the simulation (total time, step time etc.) 
+- Display the model architecture 
+- Run a simulation and testing different set of parameters/stimulations 
+- Visualize the outcome of your simulation with plots
+- Visualize your simulation with the musculoskeltal model using pyorerun (biorbd, Pierre Puchaud)  ########## A faire ??? ou bien ###########
+
+The model instance is saved as a .json file 
+
+The outcome for pyorerun visualization is saved as a csv file 
+
+
+
+
+Important naming rules 
+
+for synapses: 
+if 2 neurons are linked via synapses 
+neuronA and neuronB
+the synapse name HAS to be 
+neuronA_neuronB
+
+for motoneurons: 
+motoneurons innervating the muscle name FlxMuscle 
+HAS to be named FlxAlpha
+
+what we call function at the moment are either Flx or Ext for Flexor and Extensor 
+
+for muscles:
+must be function of the muscle + Muscle  ex: ExtMuscle
+
+for spindles:
+function + Spindle ex: FlxSpindle
+
+With the current version only two muscles model work, name of muscle are FlxMuscle and ExtMuscle
+
+
+"""
+
 import tkinter as tk
 from tkinter import simpledialog, messagebox, filedialog
 import json
+import csv
 #from components import *
-from componentsfpga import *
+from components import *
 from Model import * 
-
+import bardisbanian_visualizer as bardis
 
 class BuildModel:
     def __init__(self):
@@ -188,92 +236,174 @@ class BuildModel:
         fenetre = tk.Toplevel(root)
         fenetre.title("Create or modify a spindle")
 
-        tk.Label(fenetre, text="Select a spindle: ").grid(row=0, column=0)
+        self.dic.setdefault("spindle", {})
+
+        # --------------------------
+        # Spindle selection
+        # --------------------------
+        tk.Label(fenetre, text="Select spindle:").grid(row=0, column=0)
+
         options = ["<New>"] + list(self.dic["spindle"].keys())
-        spindle_name = tk.StringVar(fenetre)
-        spindle_name.set("<New>")
-        menu = tk.OptionMenu(fenetre, spindle_name, *options)
+        var_choix = tk.StringVar()
+        var_choix.set("<New>")
+
+        menu = tk.OptionMenu(fenetre, var_choix, *options)
         menu.grid(row=0, column=1)
 
+        tk.Label(fenetre, text="Spindle name:").grid(row=0, column=2)
+        e_name = tk.Entry(fenetre)
+        e_name.grid(row=0, column=3)
+
+        # --------------------------
+        # Parameters
+        # --------------------------
         params = [
-            "Ksr",
-            "Kpr",
-            "tau",
-            "beta",
-            "beta_dyn",
-            "beta_stat",
-            "L0pr",
-            "L0sr",
-            "Lnsr",
-            "G",
-            "M",
-            "R",
-            "F_gamma",
-            "C_shortening",
-            "C_lengthening",
-            "a",
-            "gamma_freq",
-            "freq_to_activation",
-            "dt",
-            "p",
+            "Ksr","Kpr","tau","beta","beta_dyn","beta_stat",
+            "L0pr","L0sr","Lnsr","G","M","R","F_gamma",
+            "C_shortening","C_lengthening","a",
+            "gamma_freq","freq_to_activation","dt","p",
         ]
+
+        default_values = {
+        "Bag1": {
+            "Ksr": 10.4649, "Kpr": 0.15, "tau": 0.149,
+            "beta": 0.0605, "beta_dyn": 0.2592, "beta_stat": 0.0,
+            "L0pr": 0.76, "L0sr": 0.04, "Lnsr": 0.0423,
+            "G": 20.0, "M": 0.0002, "R": 0.46,
+            "F_gamma": 0.0289,
+            "C_shortening": 0.42, "C_lengthening": 1.0,
+            "a": 0.3,
+            "gamma_freq": 90.0,
+            "freq_to_activation": 60.0,
+            "dt": 0.0002,
+            "p": 2.0
+        },
+        "Bag2": {
+            "Ksr": 10.4649, "Kpr": 0.15, "tau": 0.205,
+            "beta": 0.0822, "beta_dyn": 0.0, "beta_stat": -0.046,
+            "L0pr": 0.76, "L0sr": 0.04, "Lnsr": 0.0423,
+            "G": 20.0, "M": 0.0002, "R": 0.46,
+            "F_gamma": 0.0636,
+            "C_shortening": 0.42, "C_lengthening": 1.0,
+            "a": 0.3,
+            "gamma_freq": 50.0,
+            "freq_to_activation": 60.0,
+            "dt": 0.0002,
+            "p": 2.0
+        },
+        "Chain": {
+            "Ksr": 10.4649, "Kpr": 0.15, "tau": 0.205,
+            "beta": 0.0822, "beta_dyn": 0.0, "beta_stat": -0.069,
+            "L0pr": 0.76, "L0sr": 0.04, "Lnsr": 0.0423,
+            "G": 20.0, "M": 0.0002, "R": 0.46,
+            "F_gamma": 0.0954,
+            "C_shortening": 0.42, "C_lengthening": 1.0,
+            "a": 0.3,
+            "gamma_freq": 50.0,
+            "freq_to_activation": 60.0,
+            "dt": 0.0002,
+            "p": 2.0
+        }
+        }
+
+        def fill_with_defaults():
+            for fibre in fibers:
+                for param in params:
+                    entries[fibre][param].delete(0, tk.END)
+                    value = default_values[fibre][param]
+                    entries[fibre][param].insert(0, str(value))
+
         fibers = ["Bag1", "Bag2", "Chain"]
 
+        # Store entries here
+        entries = {f: {} for f in fibers}
+
+        # Create grid
         for col, fibre in enumerate(fibers):
             tk.Label(fenetre, text=fibre, font=("Arial", 10, "bold")).grid(
                 row=1, column=col * 2, columnspan=2
             )
+
             for i, param in enumerate(params):
-                tk.Label(fenetre, text=param + ":").grid(row=i + 2, column=col * 2)
-                entry = tk.Entry(fenetre)
-                entry.grid(row=i + 2, column=col * 2 + 1)
-                self.temp[fibre][param] = entry
+                tk.Label(fenetre, text=param).grid(row=i + 2, column=col * 2)
+                e = tk.Entry(fenetre, width=10)
+                e.grid(row=i + 2, column=col * 2 + 1)
+                entries[fibre][param] = e
 
-        def fill_spindle_params():
-            name = spindle_name.get().strip()
 
-            if name in self.dic.get("spindle", {}):
+        def fill_with_defaults():
+            for fibre in fibers:
+                for param in params:
+                    entries[fibre][param].delete(0, tk.END)
+                    value = default_values[fibre][param]
+                    entries[fibre][param].insert(0, str(value))
+
+        # --------------------------
+        # Auto-fill when selecting spindle
+        # --------------------------
+        def fill_spindle_params(*args):
+            choix = var_choix.get()
+
+            # Clear name field
+            e_name.delete(0, tk.END)
+
+            if choix != "<New>" and choix in self.dic["spindle"]:
+                e_name.insert(0, choix)
+                props = self.dic["spindle"][choix]
+
                 for fibre in fibers:
                     for param in params:
+                        entries[fibre][param].delete(0, tk.END)
                         try:
-                            val = self.dic["spindle"][name][fibre]["params"][param]
-                            self.temp["spindle"][name][fibre]["params"][param].delete(
-                                0, tk.END
-                            )
-                            self.temp["spindle"][name][fibre]["params"][param].insert(
-                                0, str(val)
-                            )
+                            value = props[fibre]["params"][param]
+                            entries[fibre][param].insert(0, str(value))
                         except KeyError:
-                            continue
+                            pass
             else:
-                messagebox.showinfo("Info", f"Aucun spindle nommé '{name}' trouvé.")
+                fill_with_defaults()
+                # Clear all fields
+                #for fibre in fibers:
+                #    for param in params:
+                #        entries[fibre][param].delete(0, tk.END)
 
+        var_choix.trace_add("write", fill_spindle_params)
+
+        # --------------------------
+        # Confirm button
+        # --------------------------
         def spindle_confirm():
-            name = spindle_name.get().strip()
-            if not name:
-                messagebox.showerror("Erreur", "Nom du spindle requis.")
-                return
-            try:
-                self.dic.setdefault("spindle", {})[name] = {}
+            name = e_name.get().strip()
 
-                path = ["spindle", name]
-                self.confirm(self.temp["spindle"][name], path)
-                messagebox.showinfo("Succès", f"spindle '{name}' ajouté ou modifié.")
+            if not name:
+                messagebox.showerror("Error", "Spindle name required.")
+                return
+
+            try:
+                self.dic["spindle"][name] = {}
+
+                for fibre in fibers:
+                    self.dic["spindle"][name][fibre] = {"params": {}}
+                    for param in params:
+                        value = float(entries[fibre][param].get())
+                        self.dic["spindle"][name][fibre]["params"][param] = value
+
+                messagebox.showinfo("Success", f"Spindle '{name}' added/modified.")
                 self.pre_post_update()
                 fenetre.destroy()
+
             except ValueError:
-                messagebox.showerror(
-                    "Erreur", "Tous les champs doivent être des nombres."
-                )
-
-        # Boutons
-        tk.Button(fenetre, text="Charger", command=fill_spindle_params).grid(
-            row=0, column=2, padx=10
+                messagebox.showerror("Error", "All parameters must be numeric.")
+        fill_with_defaults()
+        # --------------------------
+        # Buttons
+        # --------------------------
+        tk.Button(fenetre, text="Validate", command=spindle_confirm).grid(
+            row=len(params) + 3,
+            column=0,
+            columnspan=6,
+            pady=10
         )
-        tk.Button(fenetre, text="Valider", command=spindle_confirm).grid(
-            row=len(param) + 3, column=0, columnspan=6, pady=10
-        )
-
+    
     def display_architecture(self):
         fenetre = tk.Toplevel(root)
         fenetre.title("Architecture complète du modèle")
@@ -341,17 +471,39 @@ class BuildModel:
     def pre_post_update(self):
         for synapse_name in self.dic["synapse"]:
             try:
-                pre, post = synapse_name.split("_", 1)
+                pre, post = synapse_name.split("_", 1)    # Identify pre and post neuron based on synapse name 
+
+                # update pre and post neuron of the synapse
 
                 self.dic["synapse"][synapse_name]["neuron_pre"] = pre
                 self.dic["synapse"][synapse_name]["neuron_post"] = post
 
-                if self.dic["neuron"][post]["input_synapse"] is None:
-                    self.dic["neuron"][post]["input_synapse"] = []
+                # Check wheter pre and post neuron have been created yet 
 
-                # Ajout du nom de la synapse à la liste
+                if pre not in self.dic["neuron"]:
+                    print(f"\n Be careful, neuron {pre} doesn't exist yet")
+                if post not in self.dic["neuron"]:
+                    print(f"\n Be careful, neuron {post} doesn't exist yet")
+                
+                # Every neurons must have an input synapse, create this field if it's empty
+                # Add synapse to the neuron input list IF it doesn't already exist
+                 
+                self.dic["neuron"][post].setdefault("input_synapse", [])
                 if synapse_name not in self.dic["neuron"][post]["input_synapse"]:
                     self.dic["neuron"][post]["input_synapse"].append(synapse_name)
+            except Exception as e:
+                print("Problem with neuron pre post update", e)
+
+        for muscle_name in self.dic["muscle"]:
+            try:
+                alpha_motoneuron = muscle_name.replace(":Muscle", "") + "Alpha"
+                self.dic["muscle"][muscle_name]["neuron_pre"] = alpha_motoneuron
+            except Exception as e:
+                print("Problem with muscle pre post update", e)
+
+
+
+                
 
             except ValueError:
                 print(f"Nom de synapse invalide : {synapse_name} (il manque un '_')")
@@ -404,13 +556,17 @@ class BuildModel:
             if "I_set" and "I_go" not in synapse_stim[synapse_name]:
                 synapse_stim_entries[synapse_name]["g_max"] = 0
 
-        row = 0
+        
 
         # Affichage des neurones
-        tk.Label(fenetre, text="📘 Neurones", font=("Arial", 12, "bold")).grid(
-            row=row, column=0, columnspan=3, sticky="w"
-        )
-        row += 1
+        tk.Label(fenetre, text="📘 Neuron", font=("Arial", 12, "bold")).grid(
+            row=0, column=0, columnspan=3, sticky="w")
+        tk.Label(fenetre, text="SET", font=("Arial", 10, "bold")).grid(
+            row=1, column=1, sticky="w")
+        tk.Label(fenetre, text="GO", font=("Arial", 10, "bold")).grid(
+            row=1, column=2, sticky="w")
+        
+        row = 2
 
         for neuron_name in self.dic["neuron"]:
             tk.Label(fenetre, text=neuron_name).grid(row=row, column=0, sticky="w")
@@ -552,12 +708,12 @@ class BuildModel:
                 nom = self.entries["Nom"].get()
                 if not nom:
                     raise ValueError("Nom vide.")
-
+                self.dic["muscle"][nom] = {}
                 params = {}
                 for key in labels[1:]:
                     params[key] = float(self.entries[key].get())
 
-                self.dic["muscle"][nom] = params
+                self.dic["muscle"][nom]["params"] = params
 
                 messagebox.showinfo("Succès", f"Muscle '{nom}' ajouté ou modifié.")
                 fenetre.destroy()
@@ -615,15 +771,61 @@ class BuildModel:
         )
 
     def run_model(self):
-        model = Model(dicModel=self.dic)
-        model.init_neuromusculoskeletal_model()
-        model.run_model()
 
+        self.model = Model(dicModel=self.dic)
+        self.model.init_neuromusculoskeletal_model()
+        self.model.run_model()
+        print("\n model run successfuly \n")
+
+
+        print ("Do you want to save as csv this movement for visualization? yes = 1 ")
+
+        choice = int(input())
+
+        if choice==1:
+            self.save_joint_angle_csv()
+    
+    def save_joint_angle_csv(self):
+        # write to 
+        print("\nHow do you want to call this csv")
+        csv_name = input()
+
+        with open('csv/'+ csv_name+ '.csv', 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['jointangle'])  # optional header
+            for angle in self.model.Angle:
+                writer.writerow([angle])
+        
+        print("\n csv file containing joint angles has been saved succesfully \n")
+
+        
     def run_neural_model(self):
         model = Model(dicModel=self.dic)
         model.init_neural_model()
         model.run_neural_model()
 
+    def bardisbanian_architecture(self):
+        """ask json filepath"""
+        filepath = filedialog.askopenfilename(
+            defaultextension=".json",
+            filetypes=[("Fichiers JSON", "*.json")],
+            title="Ouvrir un fichier de configuration",
+        )
+        if not filepath:
+            return
+
+        try:
+            with open(filepath, "r") as f:
+                data = json.load(f)
+                self.dic.update(data)
+            messagebox.showinfo(
+                "Chargement réussi", f"Configuration chargée depuis\n{filepath}"
+            )
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de charger le fichier :\n{e}")
+        """start bardisbanian procedure"""
+
+        bardis.launch_visualizer(filepath)
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -636,6 +838,9 @@ if __name__ == "__main__":
     btn_synapse = tk.Button(frame, text="Ajouter une synapse", command=hein.synapse)
     btn_architecture = tk.Button(
         frame, text="Affiche l'architecture", command=hein.display_architecture
+    )
+    btn_bardis_architecture = tk.Button(
+        frame, text="Bardis architecutre", command=hein.bardisbanian_architecture
     )
     btn_spindle = tk.Button(frame, text="Spindle", command=hein.spindle)
     btn_save = tk.Button(frame, text="Sauvegarder", command=hein.sauvegarder_dic)
@@ -661,5 +866,6 @@ if __name__ == "__main__":
     btn_global_parameters.grid(row=0, column=8, padx=10)
     btn_mise_a_jour_post_pre.grid(row=0, column=9, padx=10)
     btn_run_model.grid(row=0, column=10, padx=10)
-
+    btn_bardis_architecture.grid(row=0, column=11, padx= 10)
+    
     root.mainloop()

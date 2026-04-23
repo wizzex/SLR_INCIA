@@ -1,0 +1,134 @@
+{
+  "elements": [
+    {
+      "data": {
+        "id": "FlxAlpha",
+        "kind": "neuron"
+      }
+    },
+    {
+      "data": {
+        "id": "FlxPn",
+        "kind": "neuron"
+      }
+    },
+    {
+      "data": {
+        "id": "ExtAlpha",
+        "kind": "neuron"
+      }
+    },
+    {
+      "data": {
+        "id": "ExtPn",
+        "kind": "neuron"
+      }
+    },
+    {
+      "data": {
+        "id": "FlxMuscle",
+        "kind": "muscle"
+      }
+    },
+    {
+      "data": {
+        "id": "ExtMuscle",
+        "kind": "muscle"
+      }
+    },
+    {
+      "data": {
+        "id": "FlxSpindle",
+        "kind": "spindle",
+        "parent": "FlxMuscle"
+      }
+    },
+    {
+      "data": {
+        "id": "ExtSpindle",
+        "kind": "spindle",
+        "parent": "ExtMuscle"
+      }
+    },
+    {
+      "data": {
+        "id": "FlxAlpha_FlxMuscle_0",
+        "source": "FlxAlpha",
+        "target": "FlxMuscle",
+        "kind": "muscle_link",
+        "weight": 1,
+        "excitatory": true
+      }
+    },
+    {
+      "data": {
+        "id": "FlxPn_FlxAlpha_0",
+        "source": "FlxPn",
+        "target": "FlxAlpha",
+        "kind": "synapse",
+        "weight": 3.0,
+        "excitatory": true
+      }
+    },
+    {
+      "data": {
+        "id": "ExtAlpha_ExtMuscle_0",
+        "source": "ExtAlpha",
+        "target": "ExtMuscle",
+        "kind": "muscle_link",
+        "weight": 1,
+        "excitatory": true
+      }
+    },
+    {
+      "data": {
+        "id": "ExtPn_ExtAlpha_0",
+        "source": "ExtPn",
+        "target": "ExtAlpha",
+        "kind": "synapse",
+        "weight": 2.0,
+        "excitatory": true
+      }
+    },
+    {
+      "data": {
+        "id": "FlxSpindle_FlxAlpha_0",
+        "source": "FlxSpindle",
+        "target": "FlxAlpha",
+        "kind": "synapse",
+        "weight": 1.0,
+        "excitatory": true
+      }
+    },
+    {
+      "data": {
+        "id": "FlxSpindle_FlxPn_0",
+        "source": "FlxSpindle",
+        "target": "FlxPn",
+        "kind": "synapse",
+        "weight": 1.5,
+        "excitatory": true
+      }
+    },
+    {
+      "data": {
+        "id": "ExtSpindle_ExtAlpha_0",
+        "source": "ExtSpindle",
+        "target": "ExtAlpha",
+        "kind": "synapse",
+        "weight": 4.0,
+        "excitatory": true
+      }
+    },
+    {
+      "data": {
+        "id": "ExtSpindle_ExtPn_0",
+        "source": "ExtSpindle",
+        "target": "ExtPn",
+        "kind": "synapse",
+        "weight": 2.0,
+        "excitatory": true
+      }
+    }
+  ]
+}

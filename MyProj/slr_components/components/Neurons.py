@@ -1,9 +1,13 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri May 16 16:40:02 2025
 
 @author: llemarchand
+
+This neuron class represents a leaky integrate-and-fire (LIF) neuron circuit (RC neuron circuit).
+
+For more information on the equations check documentation 
 """
+
 
 
 class NonSpikingNeuron:
@@ -22,9 +26,18 @@ class NonSpikingNeuron:
             conductance de leak en mS
 
         """
-        self.Vm = V_rest  # (mV)
+        self.Vm = V_rest 
+        """
+        Neuron potential (mV)
+        """
         self.V_rest = V_rest
+        """
+        Neuron resting potential (mV)
+        """
         self.tau = tau
+        """
+        time constant 
+        """
         self.Rm = Rm  # (Mohm)
         self.g_leak = 1 / (Rm)
         self.I_tot = 0
@@ -32,6 +45,7 @@ class NonSpikingNeuron:
 
     def update(self, I_inj: float, I_set: float, I_go: float, dt: float):
         """
+            Update the neuron potential by summing the injected current 
 
             Parameters
             ----------
@@ -51,9 +65,8 @@ class NonSpikingNeuron:
         3) Calcul de Vm à partir de l'équa dif des neurones sans spike, mise à l'echelle en mV
 
 
-        """
-        self.I_leak = self.g_leak * (self.V_rest - self.Vm)
-        self.I_tot = I_inj + I_set + I_go + self.I_leak
-        dVm = (self.I_tot * self.Rm) / self.tau
+        """        
+        self.I_tot = I_inj + I_set + I_go 
+        dVm = (self.I_tot * self.Rm - self.Vm + self.V_rest) / self.tau
         self.Vm += dVm * dt
         return self.Vm

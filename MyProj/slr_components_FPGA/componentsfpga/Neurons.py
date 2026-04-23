@@ -10,7 +10,7 @@ from . import operation_vhdl as op
 
 
 class NonSpikingNeuron:
-    def __init__(self, V_rest, tau, Rm, nb_bits_integer=10, nb_bits_decimal=12, debug_mode = False):
+    def __init__(self, V_rest, tau, Rm, nb_bits_integer, nb_bits_decimal, debug_mode = False):
         """
 
         Parameters
@@ -71,22 +71,18 @@ class NonSpikingNeuron:
 
 
         """
-        self.I_leak = op.mul(self.g_leak, op.sub(self.V_rest, self.Vm,)
-                        ) #self.I_leak = self.g_leak * (self.Vrest - self.V_m)
                                
         self.I_tot = op.add(op.add(I_inj, I_set) ,
-                               op.add(I_go, self.I_leak)
-                            )
+                               I_go)
+                            
                                                    #self.I_tot = I_inj + I_set + I_go + I_leak
 
-        self.dVm = op.div(op.mul(self.I_tot, self.Rm)
+        self.dVm = op.div(op.add(op.mul(self.I_tot, self.Rm),op.sub(self.V_rest, self.Vm))
                             ,self.tau)          #dVm = (self.I_tot * self.Rm) / self.tau
 
         self.Vm = op.euler_integration(self.Vm, self.dVm, dt)
-
-        return self.Vm
     
     def print_characteristics(self):
 
-        print(f"Neuron charact0..........eristics: \n V_rest: {self.V_rest},")
+        print(f"Neuron characteristics: \n V_rest: {self.V_rest},")
 
