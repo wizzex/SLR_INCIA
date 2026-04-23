@@ -1,16 +1,16 @@
-from .BioMecaModel import BiomechModel
-from .Hillmodel import HillMuscle
+
 from .MileusnicSpindle import MileusnicSpindle, MileusnicIntrafusal
 from .Neurons import NonSpikingNeuron
 from .Synapses import NonSpikingSynapse 
-from .SFixed import SFixed
+from .VHDL_types import SFixed
+from .Hillmodel import HillMuscle
 
 
 __all__ = [
-    "BiomechModel",
-    "HillMuscle",
     "MileusnicSpindle",
     "MileusnicIntrafusal",
     "NonSpikingNeuron",
     "NonSpikingSynapse",
+    "SFixed",
+    "HillMuscle"
 ]

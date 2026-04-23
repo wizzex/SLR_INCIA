@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="components_FPGA",
+    name="componentsfpga",
     version="1.0",
     packages=find_packages(),
     description="This package contains classes to create a simple neuromusculoskeletal model",

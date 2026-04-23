@@ -13,14 +13,14 @@ print("This script tests the behavior of a single neuron with a given injected c
 
 # Choix des caractéristiques du neurone
 V_rest = float(input("Neuron resting potential (mV, usually -65): \n"))
-tau = float(input("Time constant tau (s, usually 0.005): \n"))
+tau = float(input("Time constant tau (ms, usually 0.0055): \n"))
 Rm = float(input("Membrane resistance Rm (MΩ, usually 1): \n"))
 
 Neuron = NonSpikingNeuron(V_rest=V_rest, tau=tau, Rm=Rm)
 
 # Simulation parameters
 dt = 0.0002  # s
-T_total = float(input("Total simulation time (s): \n"))
+T_total =  float(input("Total simulation time (s): \n"))
 steps = int(T_total / dt)
 times = np.arange(0, T_total, dt)
 

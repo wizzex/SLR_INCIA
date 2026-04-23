@@ -1,8 +1,12 @@
 # Simulation d'un étirement en rampe
-from components import MileusnicSpindle, MileusnicIntrafusal
+from componentsfpga import * 
+
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+nb_bits_integer = 15  
+nb_bits_decimal = 20
 
 """
 ----------------------------------------------------------------------------------------
@@ -79,6 +83,8 @@ Ext_Bag1Fiber = MileusnicIntrafusal(
     freq_to_activation=60,
     dt=dt,
     p=2,
+    nb_bits_integer= nb_bits_integer,
+    nb_bits_decimal = nb_bits_decimal
 )
 
 Ext_Bag2Fiber = MileusnicIntrafusal(
@@ -101,7 +107,9 @@ Ext_Bag2Fiber = MileusnicIntrafusal(
     gamma_freq=Ext_gamma_stat_activation,
     freq_to_activation=60,
     dt=dt,
-    p=2,
+    p=2,    
+    nb_bits_integer= nb_bits_integer,
+    nb_bits_decimal = nb_bits_decimal
 )
 
 Ext_ChainFiber = MileusnicIntrafusal(
@@ -125,9 +133,11 @@ Ext_ChainFiber = MileusnicIntrafusal(
     freq_to_activation=90,
     dt=dt,
     p=2,
+    nb_bits_integer= nb_bits_integer,
+    nb_bits_decimal = nb_bits_decimal
 )
 
-Ext_Spindle = MileusnicSpindle(Ext_Bag1Fiber, Ext_Bag2Fiber, Ext_ChainFiber, 1, 0.156) #Mileusnic function in % L0, therefore must specify what is L0 so that it can convert from m or cm to %L0
+Ext_Spindle = MileusnicSpindle(Ext_Bag1Fiber, Ext_Bag2Fiber, Ext_ChainFiber, 1, 0.156, nb_bits_integer, nb_bits_decimal) #Mileusnic function in % L0, therefore must specify what is L0 so that it can convert from m or cm to %L0
 
 """
 FLEXOR SPINDLE
@@ -154,6 +164,8 @@ Flx_Bag1Fiber = MileusnicIntrafusal(
     freq_to_activation=60,
     dt=dt,
     p=2,
+    nb_bits_integer= nb_bits_integer,
+    nb_bits_decimal = nb_bits_decimal
 )
 
 Flx_Bag2Fiber = MileusnicIntrafusal(
@@ -177,6 +189,8 @@ Flx_Bag2Fiber = MileusnicIntrafusal(
     freq_to_activation=60,
     dt=dt,
     p=2,
+    nb_bits_integer= nb_bits_integer,
+    nb_bits_decimal = nb_bits_decimal
 )
 
 Flx_ChainFiber = MileusnicIntrafusal(
@@ -200,9 +214,11 @@ Flx_ChainFiber = MileusnicIntrafusal(
     freq_to_activation=90,
     dt=dt,
     p=2,
+    nb_bits_integer= nb_bits_integer,
+    nb_bits_decimal = nb_bits_decimal
 )
 
-Flx_Spindle = MileusnicSpindle(Flx_Bag1Fiber, Flx_Bag2Fiber, Flx_ChainFiber, 1, 0.156) #Mileusnic function in % L0, therefore must specify what is L0 so that it can convert from m or cm to %L0
+Flx_Spindle = MileusnicSpindle(Flx_Bag1Fiber, Flx_Bag2Fiber, Flx_ChainFiber, 1, 0.156,  nb_bits_integer, nb_bits_decimal) #Mileusnic function in % L0, therefore must specify what is L0 so that it can convert from m or cm to %L0
 
 
 
@@ -247,6 +263,11 @@ Ext_potSpindle = []
 Ext_Iabag2 = []
 Ext_Iachain = []
 Ext_Ia_output = []
+
+Ext_damping_contrib = []
+Ext_parallel_spring_contrib = []
+Ext_mass_contrib = []
+Ext_gamma_activation_contrib = []
 """
 ----------------------------------------------------------------------------------------------------
                                         SIMULATION & LIST POUR GRAPH
@@ -263,63 +284,70 @@ for i, t in enumerate(time):
 
 ######## Flexor spindle characteristics ##################
 
-    Flx_IaStat.append(Flx_Bag2Fiber.Ia_contrib + Flx_ChainFiber.Ia_contrib)
-    Flx_IaDyn.append(Flx_Bag1Fiber.Ia_contrib)
+    Flx_IaStat.append(Flx_Bag2Fiber.Ia_contrib.float_value + Flx_ChainFiber.Ia_contrib.float_value)
+    Flx_IaDyn.append(Flx_Bag1Fiber.Ia_contrib.float_value)
 
-    Flx_Ia_output.append(Flx_Spindle.Ia)
-    Flx_gammaActivation.append(Flx_Bag1Fiber.f_gamma)
-    Flx_d2TT.append(Flx_Bag1Fiber.d2T)
+    Flx_Ia_output.append(Flx_Spindle.Ia.float_value)
+    Flx_gammaActivation.append(Flx_Bag1Fiber.f_gamma.float_value)
+    Flx_d2TT.append(Flx_Bag1Fiber.d2T.float_value)
 
     Flx_TT.append(Flx_Bag2Fiber.dT)
-    Flx_niv_ac_gamma_dyn.append(Flx_Bag1Fiber.f_gamma)
-    Flx_niv_ac_gamma_stat.append(Flx_Bag2Fiber.f_gamma)
-    Flx_d2TT.append(Flx_Bag2Fiber.d2T)
+    Flx_niv_ac_gamma_dyn.append(Flx_Bag1Fiber.f_gamma.float_value)
+    Flx_niv_ac_gamma_stat.append(Flx_Bag2Fiber.f_gamma.float_value)
+    Flx_d2TT.append(Flx_Bag2Fiber.d2T.float_value)
 
-    Flx_beta.append(Flx_Bag1Fiber.B)
+    Flx_beta.append(Flx_Bag1Fiber.B.float_value)
 
-    Flx_sign_spring.append(np.sign(Flx_Bag1Fiber.dL - Flx_Bag1Fiber.T / Flx_Bag1Fiber.Ksr))
+    Flx_sign_spring.append(np.sign(Flx_Bag1Fiber.dL.float_value - Flx_Bag1Fiber.T.float_value / Flx_Bag1Fiber.Ksr.float_value))
 
-    Flx_abs_spring.append(abs((Flx_Bag2Fiber.dL) - (Flx_Bag2Fiber.T / Flx_Bag2Fiber.Ksr)) ** Flx_Bag2Fiber.a)
+    Flx_abs_spring.append(abs((Flx_Bag2Fiber.dL.float_value) - (Flx_Bag2Fiber.T.float_value / Flx_Bag2Fiber.Ksr.float_value)) ** Flx_Bag2Fiber.a.float_value)
 
-    Flx_term4.append(Flx_Bag2Fiber.C)
+    Flx_term4.append(Flx_Bag2Fiber.C.float_value)
 
     Flx_term5.append(Flx_Spindle.Vm2)
 
-    Flx_potSpindle.append(Flx_Spindle.Vm)
+    Flx_potSpindle.append(Flx_Spindle.Vm.float_value)
 
-    Flx_Iabag2.append(Flx_Bag2Fiber.Ia_contrib)
-    Flx_Iachain.append(Flx_ChainFiber.Ia_contrib)
+    Flx_Iabag2.append(Flx_Bag2Fiber.Ia_contrib.float_value)
+    Flx_Iachain.append(Flx_ChainFiber.Ia_contrib.float_value)
 
 
 ######## Extensor spindle characteristics ##################
 
 
-    Ext_IaStat.append(Ext_Bag2Fiber.Ia_contrib + Ext_ChainFiber.Ia_contrib)
-    Ext_IaDyn.append(Ext_Bag1Fiber.Ia_contrib)
+    Ext_IaStat.append(Ext_Bag2Fiber.Ia_contrib.float_value + Ext_ChainFiber.Ia_contrib.float_value)
+    Ext_IaDyn.append(Ext_Bag1Fiber.Ia_contrib.float_value)
 
-    Ext_Ia_output.append(Ext_Spindle.Ia)
-    Ext_gammaActivation.append(Ext_Bag1Fiber.f_gamma)
-    Ext_d2TT.append(Ext_Bag1Fiber.d2T)
+    Ext_Ia_output.append(Ext_Spindle.Ia.float_value)
+    Ext_gammaActivation.append(Ext_Bag1Fiber.f_gamma.float_value)
+    Ext_d2TT.append(Ext_Bag1Fiber.d2T.float_value)
 
-    Ext_TT.append(Ext_Bag2Fiber.dT)
-    Ext_niv_ac_gamma_dyn.append(Ext_Bag1Fiber.f_gamma)
-    Ext_niv_ac_gamma_stat.append(Ext_Bag2Fiber.f_gamma)
-    Ext_d2TT.append(Ext_Bag2Fiber.d2T)
+    Ext_TT.append(Ext_Bag2Fiber.dT.float_value)
+    Ext_niv_ac_gamma_dyn.append(Ext_Bag1Fiber.f_gamma.float_value)
+    Ext_niv_ac_gamma_stat.append(Ext_Bag2Fiber.f_gamma.float_value)
+    Ext_d2TT.append(Ext_Bag2Fiber.d2T.float_value)
 
-    Ext_beta.append(Ext_Bag1Fiber.B)
+    Ext_beta.append(Ext_Bag1Fiber.B.float_value)
 
-    Ext_sign_spring.append(np.sign(Ext_Bag1Fiber.dL - Ext_Bag1Fiber.T / Ext_Bag1Fiber.Ksr))
+    Ext_sign_spring.append(np.sign(Ext_Bag1Fiber.dL.float_value - Ext_Bag1Fiber.T.float_value / Ext_Bag1Fiber.Ksr.float_value))
 
-    Ext_abs_spring.append(abs((Ext_Bag2Fiber.dL) - (Ext_Bag2Fiber.T / Ext_Bag2Fiber.Ksr)) ** Ext_Bag2Fiber.a)
+    Ext_abs_spring.append(abs((Ext_Bag2Fiber.dL.float_value) - (Ext_Bag2Fiber.T.float_value / Ext_Bag2Fiber.Ksr.float_value)) ** Ext_Bag2Fiber.a.float_value)
 
-    Ext_term4.append(Ext_Bag2Fiber.C)
+    Ext_term4.append(Ext_Bag2Fiber.C.float_value)
 
     Ext_term5.append(Ext_Spindle.Vm2)
 
-    Ext_potSpindle.append(Ext_Spindle.Vm)
+    Ext_potSpindle.append(Ext_Spindle.Vm.float_value)
 
-    Ext_Iabag2.append(Ext_Bag2Fiber.Ia_contrib)
-    Ext_Iachain.append(Ext_ChainFiber.Ia_contrib)
+    Ext_Iabag2.append(Ext_Bag2Fiber.Ia_contrib.float_value)
+    Ext_Iachain.append(Ext_ChainFiber.Ia_contrib.float_value)
+
+
+
+    Ext_damping_contrib.append(Ext_Bag1Fiber.damping_contribution.float_value)
+    Ext_parallel_spring_contrib.append(Ext_Bag1Fiber.parallel_spring_contribution.float_value)
+    Ext_mass_contrib.append(Ext_Bag1Fiber.mass_contrib.float_value)
+    Ext_gamma_activation_contrib.append(Ext_Bag1Fiber.gamma_contraction_contrib.float_value)
 
 
 """
@@ -360,7 +388,7 @@ ax4.set_ylabel("Ia Output")
 ax4.grid(True)
 ax4.legend()
 
-ax5.plot(time, Ext_potSpindle, label="Ext_Spindle potentia", color="green")
+ax5.plot(time, Ext_parallel_spring_contrib, label=" parallel spring contribution", color="green")
 ax5.set_xlabel("Time (ms)")
 ax5.set_ylabel("Ia Output")
 ax5.grid(True)
@@ -395,19 +423,19 @@ ax9.set_ylabel("Ia Output")
 ax9.grid(True)
 ax9.legend()
 
-ax10.plot(time, Ext_abs_spring, label="abs spring", color="green")
+ax10.plot(time, Ext_gamma_activation_contrib, label="gamma_activation contrib", color="green")
 ax10.set_xlabel("Time (ms)")
 ax10.set_ylabel("Ia Output")
 ax10.grid(True)
 ax10.legend()
 
-ax11.plot(time, Ext_sign_spring, label="sign", color="green")
+ax11.plot(time, Ext_damping_contrib, label="damping contrib", color="green")
 ax11.set_xlabel("Time (ms)")
 ax11.set_ylabel("Ia Output")
 ax11.grid(True)
 ax11.legend()
 
-ax12.plot(time, Ext_beta, label="beta ", color="green")
+ax12.plot(time, Ext_mass_contrib, label="acceleration contribution ", color="green")
 ax12.set_xlabel("Time (ms)")
 ax12.set_ylabel("Ia Output")
 ax12.grid(True)

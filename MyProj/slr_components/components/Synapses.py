@@ -7,7 +7,7 @@ Created on Fri May 16 16:40:02 2025
 
 
 class NonSpikingSynapse:
-    def __init__(self, Veq: float, g_max: float, V_thr: float, V_sat: float):
+    def __init__(self, Veq: float, g_max: float, V_thr: float, V_sat: float, nb_bits_integer = 8, nb_bits_decimal = 8):
         """
 
         Parameters

@@ -1,23 +1,28 @@
-
+from componentsfpga import *
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import slr_components_FPGA.components_FPGA.ModelEquations 
 
+nb_bits_integer = 15 
+nb_bits_decimal = 15
 
 print("This script tests the behavior of the biceps for an isometric contraction\n\n")
 
 # neurons characteristics 
 V_rest = float(input("Choose motoneuron characteristics (mV, usually -65): \n"))
-tau = float(input("Time constant tau (s, usually 0.005): \n"))
+tau = float(input("Time constant tau (s, usually 5): \n"))
 Rm = float(input("Membrane resistance Rm (MΩ, usually 1): \n"))
 
-motoneuron = NonSpikingNeuron(V_rest=V_rest, tau=tau, Rm=Rm)
+motoneuron = NonSpikingNeuron(V_rest=V_rest, tau=tau, Rm=Rm, nb_bits_integer= nb_bits_integer, nb_bits_decimal = nb_bits_decimal)
 
-T_total = float(input("Total simulation time (s): \n"))
+T_total = 1000 * float(input("Total simulation time (s): \n"))
 
 Inj_go = float(input("Value for injected current nA: \n"))
-stim_time = float(input("Duration of stimulation (s): \n"))
+stim_time = 1000 *float(input("Duration of stimulation (s): \n"))
+
+Inj_go = SFixed(Inj_go, nb_bits_integer,nb_bits_decimal)
+zero_fixed = SFixed(0, nb_bits_integer,nb_bits_decimal)
+muscle_length = SFixed(0.33, nb_bits_integer,nb_bits_decimal)
 
 print(f"\nThe simulation lasts {T_total} s, the injected current starts at {T_total/2} s with a value of {Inj_go}\n")
 
@@ -47,14 +52,16 @@ Biceps = HillMuscle(
     y_offset=y_offset,
     L_rest=L_rest,
     L_width=L_width,
+    nb_bits_integer= nb_bits_integer,
+    nb_bits_decimal =nb_bits_decimal
 )
 
 
 
-motoneuron = NonSpikingNeuron(V_rest=-70.0, tau=0.005, Rm=1.0)
+motoneuron = NonSpikingNeuron(V_rest=-70.0, tau=5, Rm=1.0,nb_bits_integer = nb_bits_integer, nb_bits_decimal = nb_bits_decimal)
 
 
-dt = 0.0002
+dt = 0.2
 time = np.arange(0, T_total, dt)
 force = []
 vitesse = []
@@ -65,49 +72,57 @@ damping_term = []
 viscous_force = []
 muscle_length = []
 
+first_term = []
+second_term = []
 tension_length = []
+dt_fixed = SFixed(dt, nb_bits_integer, nb_bits_decimal)
 
-#to plot the stimulus tension curve
+#to plot the stimulus tension curve            A FAIRE DANS LE CADRE DES FIXED 
 stimulus_tension_curve = []
 ordinates_V = np.arange(-70,40,1)
+value= SFixed(0, nb_bits_integer, nb_bits_decimal)
+
 for N in ordinates_V:
-        value = max_active_tension/ (1 + math.exp((steepness) * (x_offset - N / 1000))) + y_offset
-        if value >= 0: 
-            stimulus_tension_curve.append(value)
-        else:
-             stimulus_tension_curve.append(0)
+        value = Biceps.stimulus_tension(SFixed(N, nb_bits_integer, nb_bits_decimal))
+        stimulus_tension_curve.append(value.float_value)
+
 
         
-# to plot the length tension curve
+# to plot the length tension curve       ################ A FAIRE DANS LE CADRE DES FIXED 
 length_tension_curve = []
 ordinates_length = np.arange(0.25,0.35,0.001)
+value= SFixed(0, nb_bits_integer, nb_bits_decimal)
 for N in ordinates_length:
-        length_tension_curve.append(1 - ((N - L_rest) ** 2 / (L_width) ** 2))
+        value = Biceps.length_tension(SFixed(N, nb_bits_integer, nb_bits_decimal))
+        length_tension_curve.append(value.float_value)
 
 for t in time:
     if t >= T_total/2 and t < T_total/2 + stim_time:
         I_go = Inj_go
     else:
-        I_go = 0
+        I_go = zero_fixed
 
 
-    motoneuron.update(I_inj=0, I_set=0, I_go=I_go, dt=dt)
-    Biceps.update(motoneuron.Vm, dt, L=0.33, dL=0)
+    motoneuron.update(zero_fixed, zero_fixed, I_go=I_go, dt=dt_fixed)
+    Biceps.update(motoneuron.Vm, dt_fixed, L=L, dL=0)   ###    en condition isométrique 
 
 
-    force.append(Biceps.T)
+    force.append(Biceps.T.float_value)
     vitesse.append(1)
-    Vm.append(motoneuron.Vm)
+    Vm.append(motoneuron.Vm.float_value)
 
     passive_force.append(0)   #we don't want passive force, as in HillMuscleModel equation that we used
 
-    damping_term.append((1 + Biceps.Kpe / Biceps.Kse) * Biceps.T)
+    damping_term.append(Biceps.damping_contribution.float_value)
 
-    active_force.append(Biceps.A)
+    active_force.append(Biceps.A.float_value)
 
-    muscle_length.append(Biceps.L)
+    muscle_length.append(Biceps.L.float_value)
 
-    tension_length.append(Biceps.length_tension())
+    tension_length.append(Biceps.length_tension(Biceps.L).float_value)
+
+    first_term.append(Biceps.first_term.float_value)
+    second_term.append(Biceps.second_term.float_value)
 
 
 fig, axs = plt.subplots(3, 3, figsize=(12, 10))
@@ -162,7 +177,7 @@ ax7.set_title("tension length ratio")
 ax7.grid(True)
 ax7.legend()
 
-ax8.plot(ordinates_V, stimulus_tension_curve, label="stimu-65lus tension curve for these parameters", color="teal")
+ax8.plot(ordinates_V, stimulus_tension_curve, label="stimulus tension curve for these parameters", color="teal")
 ax8.set_ylabel("m")
 ax8.set_title("stimulus tension curve")
 ax8.grid(True)
@@ -173,6 +188,8 @@ ax9.set_ylabel("m")
 ax9.set_title("tension length ratio")
 ax9.grid(True)
 ax9.legend()
+
+
 
 plt.tight_layout()
 plt.show()

@@ -1,4 +1,5 @@
-from components import *   
+#from components import *  
+from componentsfpga import * 
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -20,7 +21,7 @@ class Model:
     ============================================================================
     """
 
-    def init(self):
+    def init_neuromusculoskeletal_model(self):
         """
         Crée toutes les instances à partir du dictionnaire self.dic
         """
@@ -250,6 +251,180 @@ class Model:
         axs[7].set_xlabel("Temps (s)")
         axs[7].legend()
         axs[7].grid()
+
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        plt.show()
+
+
+    def init_neural_model(self):
+        """
+        Crée toutes les instances à partir du dictionnaire self.dic
+        """
+
+        if "neuron" in self.dic:
+            for neuron_name in self.dic["neuron"]:
+                params = self.dic["neuron"][neuron_name]["params"]
+                try:
+                    self.neuron[neuron_name] = NonSpikingNeuron(**params)
+                except Exception as e:
+                    print(f" Erreur création neurone '{neuron_name}': {e}")
+
+        # Création des synapse
+        if "synapse" in self.dic:
+            for synapse_name in self.dic["synapse"]:
+                params = self.dic["synapse"][synapse_name]["params"]
+                try:
+                    self.synapse[synapse_name] = NonSpikingSynapse(**params)
+                except Exception as e:
+                    print(f" Erreur création synapse '{synapse_name}': {e}")
+
+        # Création des muscle
+        if "muscle" in self.dic:
+            for muscle_name in self.dic["muscle"]:
+                params = self.dic["muscle"][muscle_name]["params"]
+                try:
+                    self.muscle[muscle_name] = HillMuscle(**params)
+                except Exception as e:
+                    print(f" Erreur création muscle '{muscle_name}': {e}")
+
+        if "spindle" in self.dic:
+            for spindle_name in self.dic["spindle"]:
+                for intrafusalfiber_name in self.dic["spindle"][spindle_name]:
+                    params = self.dic["spindle"][spindle_name][intrafusalfiber_name][
+                        "params"
+                    ]
+                    self.intrafusalfibers[spindle_name + "_" + intrafusalfiber_name] = (
+                        MileusnicIntrafusal(**params)
+                    )
+                self.spindle[spindle_name] = MileusnicSpindle(
+                    self.intrafusalfibers[spindle_name + "_" + "Bag1"],
+                    self.intrafusalfibers[spindle_name + "_" + "Bag2"],
+                    self.intrafusalfibers[spindle_name + "_" + "Chain"],
+                    L0=self.dic["muscle"][spindle_name[:3] + "Muscle"]["params"][
+                        "L_rest"
+                    ],
+                    S=self.dic["globals_parameters"][spindle_name + "_S"],
+                )
+
+
+
+    def run_neural_model(self, input_kinematic):
+
+        L = []
+        dL = []
+        d2L = []
+
+        total_time = self.dic["globals_parameters"]["total_time"]
+        n_steps = int(total_time / self.dt)
+
+        time = np.linspace(
+            0, total_time, n_steps, endpoint=False
+        )  # linspace more robust than arrange with very little timesteps
+
+
+        L = np.zeros(n_steps)
+
+        L_start = 0.95
+        L_end = 1.05
+        ramp_duration = 1.0  # s
+        ramp_slope = (L_end-L_start)/ramp_duration
+
+        for i, t in enumerate(time):
+            if t < 2:
+                L[i] = L_start                   
+            elif (t> ramp_duration+2) & (t < ramp_duration + 3):
+                L[i] = L_start + ramp_slope * (t-2) 
+            else:
+                L[i] = L_end
+        
+        # --- Dérivées numériques ---
+        dL = np.gradient(L, self.dt)
+        d2L = np.gradient(dL, self.dt)
+
+        for t in time:
+            for spindle_name in self.spindle:
+                self.spindle[spindle_name].update(
+                    L=L[t],
+                    dL=dL[t],
+                    d2L=d2L[t],
+                    dt=self.dt,
+                )
+            for neuron_name in self.neuron:   ################## A TRAITER A LA PLACE DU SUM ####################### COMM%MMMMMMMMMMMMMMMMMENT??????????? 
+                I_inj_sum = sum(
+                    self.synapse[syn_name].Isyn
+                    for syn_name in self.dic["neuron"][neuron_name]["input_synapse"]
+                    if syn_name in self.synapse
+                )
+
+                if t < 5:
+                    self.neuron[neuron_name].update(
+                        I_inj_sum,
+                        self.dic["stimulations"]["neuron"][neuron_name]["I_set"],
+                        0,
+                        self.dt,
+                    )
+                else:
+                    self.neuron[neuron_name].update(
+                        I_inj_sum,
+                        self.dic["stimulations"]["neuron"][neuron_name]["I_set"],
+                        self.dic["stimulations"]["neuron"][neuron_name]["I_go"],
+                        self.dt,
+                    )
+            for synapse_name in self.synapse:
+                if self.dic["synapse"][synapse_name]["neuron_pre"] in self.neuron:
+                    self.synapse[synapse_name].update_g(
+                        self.neuron[self.dic["synapse"][synapse_name]["neuron_pre"]].Vm
+                    )
+                else:
+                    self.synapse[synapse_name].update_g(
+                        self.spindle[self.dic["synapse"][synapse_name]["neuron_pre"]].Vm
+                    )
+
+                self.synapse[synapse_name].update_Isyn(
+                    self.synapse[synapse_name].g,
+                    self.neuron[self.dic["synapse"][synapse_name]["neuron_post"]].Vm,
+                )
+
+
+            self.FlxIa.append(self.spindle["FlxSpindle"].Vm)
+            self.ExtIa.append(self.spindle["ExtSpindle"].Vm)
+
+            self.FlxPn.append(self.neuron["FlxPn"].Vm)
+            self.ExtPn.append(self.neuron["ExtPn"].Vm)
+
+            self.FlxAlpha.append(self.neuron["FlxAlpha"].Vm)
+            self.ExtAlpha.append(self.neuron["ExtAlpha"].Vm)
+
+
+
+        fig, axs = plt.subplots(2, 4, figsize=(18, 8))
+        fig.suptitle("Activités neuronales, musculaires et mécaniques", fontsize=16)
+        axs = axs.flatten()
+
+        # 1. FlxIa & ExtIa
+        axs[0].plot(self.time, self.FlxIa, label="FlxIa", color="blue")
+        axs[0].plot(self.time, self.ExtIa, label="ExtIa", color="red")
+        axs[0].set_title("Vm - Ia")
+        axs[0].set_ylabel("Vm (mV)")
+        axs[0].legend()
+        axs[0].grid()
+
+        # 2. FlxPn & ExtPn
+        axs[1].plot(self.time, self.FlxPn, label="FlxPn", color="blue")
+        axs[1].plot(self.time, self.ExtPn, label="ExtPn", color="red")
+        axs[1].set_title("Vm - Pn")
+        axs[1].set_ylabel("Vm (mV)")
+        axs[1].legend()
+        axs[1].grid()
+
+        # 3. FlxAlpha & ExtAlpha
+        axs[2].plot(self.time, self.FlxAlpha, label="FlxAlpha", color="blue")
+        axs[2].plot(self.time, self.ExtAlpha, label="ExtAlpha", color="red")
+        axs[2].set_title("Vm - Alpha")
+        axs[2].set_ylabel("Vm (mV)")
+        axs[2].legend()
+        axs[2].grid()
+
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         plt.show()

@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox, filedialog
 import json
-from components import *
+#from components import *
+from componentsfpga import *
 from Model import * 
 
 
@@ -615,8 +616,13 @@ class BuildModel:
 
     def run_model(self):
         model = Model(dicModel=self.dic)
-        model.init()
+        model.init_neuromusculoskeletal_model()
         model.run_model()
+
+    def run_neural_model(self):
+        model = Model(dicModel=self.dic)
+        model.init_neural_model()
+        model.run_neural_model()
 
 
 if __name__ == "__main__":
